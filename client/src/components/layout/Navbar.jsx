@@ -39,6 +39,10 @@ function Navbar() {
   const navLinks = [
     { to: "/", label: "Home" },
     { to: "/products", label: "Products" },
+    { to: "/categories", label: "Categories" },
+    { to: "/deals", label: "Deals" },
+    { to: "/compare", label: "Compare" },
+    { to: "/support", label: "Support" },
   ];
 
   return (
@@ -140,10 +144,6 @@ function Navbar() {
               {label}
             </NavLink>
           ))}
-          <a href="#">Categories</a>
-          <a href="#">Deals</a>
-          <a href="#">Compare</a>
-          <a href="#">Support</a>
         </nav>
 
         {/* Mobile Navigation Drawer */}
@@ -165,9 +165,6 @@ function Navbar() {
                 {label}
               </NavLink>
             ))}
-            <a href="#" className="py-2">Categories</a>
-            <a href="#" className="py-2">Deals</a>
-            <a href="#" className="py-2">Support</a>
             {!user && (
               <Link to="/login" onClick={() => setMobileOpen(false)} className="py-2">
                 Account

@@ -3,7 +3,11 @@ import cloudinary from "../config/cloudinary.js";
 
 export async function getAllProducts(req, res, next) {
   try {
-    const { category, minPrice, maxPrice, sort } = req.query;
+    const {
+      category, minPrice, maxPrice, sort,
+      brand, ram, storage, screenSize, processor, os,
+      minRating, badge, q,
+    } = req.query;
     const filter = {};
 
     if (category) {
@@ -14,6 +18,22 @@ export async function getAllProducts(req, res, next) {
       filter.price = {};
       if (minPrice) filter.price.$gte = Number(minPrice);
       if (maxPrice) filter.price.$lte = Number(maxPrice);
+    }
+
+    // New filters
+    if (brand) filter.brand = brand;
+    if (ram) filter["specs.ram"] = ram;
+    if (storage) filter["specs.storage"] = storage;
+    if (screenSize) filter["specs.screenSize"] = screenSize;
+    if (processor) filter["specs.processor"] = processor;
+    if (os) filter["specs.os"] = os;
+    if (minRating) filter.rating = { $gte: Number(minRating) };
+    if (badge) filter.badge = badge;
+
+    // Text search — case-insensitive regex on name and category
+    if (q) {
+      const regex = new RegExp(q, "i");
+      filter.$or = [{ name: regex }, { category: regex }];
     }
 
     let query = Product.find(filter);

@@ -46,6 +46,16 @@ const productSchema = new mongoose.Schema(
       enum: ["NEW", "SALE", null],
       default: null,
     },
+    brand: {
+      type: String,
+    },
+    specs: {
+      ram: { type: String },
+      storage: { type: String },
+      screenSize: { type: String },
+      processor: { type: String },
+      os: { type: String },
+    },
   },
   {
     timestamps: true,

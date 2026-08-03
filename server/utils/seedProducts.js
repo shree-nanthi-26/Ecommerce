@@ -20,6 +20,14 @@ const products = [
     reviews: 2300,
     stock: 25,
     badge: "NEW",
+    brand: "ASUS",
+    specs: {
+      ram: "16 GB",
+      storage: "512 GB SSD",
+      screenSize: "15.6 inch",
+      processor: "Intel Core i7-13700H",
+      os: "Windows 11",
+    },
   },
   {
     name: "Wireless Earbuds Pro",
@@ -35,6 +43,8 @@ const products = [
     reviews: 1100,
     stock: 120,
     badge: "SALE",
+    brand: "Sony",
+    specs: {},
   },
   {
     name: "Smartwatch Series 5",
@@ -50,6 +60,11 @@ const products = [
     reviews: 900,
     stock: 80,
     badge: null,
+    brand: "Apple",
+    specs: {
+      screenSize: "1.9 inch",
+      os: "watchOS 10",
+    },
   },
   {
     name: "4K Action Camera",
@@ -65,6 +80,11 @@ const products = [
     reviews: 540,
     stock: 50,
     badge: "SALE",
+    brand: "GoPro",
+    specs: {
+      storage: "128 GB",
+      screenSize: "2.0 inch",
+    },
   },
   {
     name: "Ultra OLED Monitor",
@@ -80,6 +100,11 @@ const products = [
     reviews: 810,
     stock: 35,
     badge: null,
+    brand: "LG",
+    specs: {
+      screenSize: "27 inch",
+      processor: "N/A",
+    },
   },
   {
     name: "Neon Bluetooth Speaker",
@@ -95,6 +120,8 @@ const products = [
     reviews: 660,
     stock: 90,
     badge: "SALE",
+    brand: "JBL",
+    specs: {},
   },
   {
     name: "Galaxy Fold Phone",
@@ -110,6 +137,14 @@ const products = [
     reviews: 1550,
     stock: 20,
     badge: "NEW",
+    brand: "Samsung",
+    specs: {
+      ram: "12 GB",
+      storage: "256 GB",
+      screenSize: "7.6 inch",
+      processor: "Snapdragon 8 Gen 2",
+      os: "Android 14",
+    },
   },
   {
     name: "Studio Headphones X1",
@@ -125,6 +160,8 @@ const products = [
     reviews: 930,
     stock: 65,
     badge: null,
+    brand: "Sennheiser",
+    specs: {},
   },
   {
     name: "FitPulse Smart Band",
@@ -140,6 +177,11 @@ const products = [
     reviews: 740,
     stock: 140,
     badge: "SALE",
+    brand: "Xiaomi",
+    specs: {
+      screenSize: "1.1 inch",
+      os: "Proprietary",
+    },
   },
   {
     name: "Mirrorless Camera Pro",
@@ -155,6 +197,11 @@ const products = [
     reviews: 420,
     stock: 28,
     badge: null,
+    brand: "Canon",
+    specs: {
+      storage: "Dual SD Slot",
+      screenSize: "3.2 inch",
+    },
   },
   {
     name: "SoundCore Mini Speaker",
@@ -170,6 +217,8 @@ const products = [
     reviews: 590,
     stock: 110,
     badge: "NEW",
+    brand: "Anker",
+    specs: {},
   },
   {
     name: "Nova Smartphone Lite",
@@ -185,6 +234,14 @@ const products = [
     reviews: 1210,
     stock: 100,
     badge: null,
+    brand: "OnePlus",
+    specs: {
+      ram: "8 GB",
+      storage: "128 GB",
+      screenSize: "6.7 inch",
+      processor: "MediaTek Dimensity 9000",
+      os: "Android 14",
+    },
   },
 ];
 

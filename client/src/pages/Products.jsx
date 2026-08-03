@@ -4,11 +4,19 @@ import Footer from "../components/layout/Footer";
 import ProductCard from "../components/product/ProductCard";
 import SkeletonCard from "../components/product/SkeletonCard";
 import QuickViewModal from "../components/product/QuickViewModal";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { getAllProducts } from "../services/productService";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { useSearchParams } from "react-router-dom";
+import { FiChevronLeft, FiChevronRight, FiX } from "react-icons/fi";
 
 const PRODUCTS_PER_PAGE = 12;
+
+const CATEGORIES = ["Mobiles", "Laptops", "Audio", "Wearables", "Cameras", "Speakers"];
+const RATINGS = [
+  { value: "4", label: "4★ & up" },
+  { value: "3", label: "3★ & up" },
+  { value: "2", label: "2★ & up" },
+];
 
 function Products() {
   const [products, setProducts] = useState([]);
@@ -16,12 +24,52 @@ function Products() {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [quickViewProduct, setQuickViewProduct] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
 
+  // Derive filter state from URL
+  const selectedCategory = searchParams.get("category") || "";
+  const minPrice = searchParams.get("minPrice") || "";
+  const maxPrice = searchParams.get("maxPrice") || "";
+  const minRating = searchParams.get("minRating") || "";
+  const sort = searchParams.get("sort") || "";
+  const searchQuery = searchParams.get("q") || "";
+
+  // Local state for price inputs (update URL on blur/enter)
+  const [localMinPrice, setLocalMinPrice] = useState(minPrice);
+  const [localMaxPrice, setLocalMaxPrice] = useState(maxPrice);
+
+  // Sync local price state when URL changes externally
+  useEffect(() => {
+    setLocalMinPrice(minPrice);
+    setLocalMaxPrice(maxPrice);
+  }, [minPrice, maxPrice]);
+
+  // Helper to update search params immutably
+  const updateParams = useCallback(
+    (updates) => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        Object.entries(updates).forEach(([key, value]) => {
+          if (value) {
+            next.set(key, value);
+          } else {
+            next.delete(key);
+          }
+        });
+        return next;
+      });
+      setCurrentPage(1);
+    },
+    [setSearchParams]
+  );
+
+  // Fetch products when search params change
   useEffect(() => {
     async function fetchProducts() {
       try {
         setLoading(true);
-        const data = await getAllProducts();
+        const params = Object.fromEntries(searchParams);
+        const data = await getAllProducts(params);
         setProducts(data);
       } catch (err) {
         setError("Could not load products. Is the server running?");
@@ -30,7 +78,43 @@ function Products() {
       }
     }
     fetchProducts();
-  }, []);
+    setCurrentPage(1);
+  }, [searchParams]);
+
+  // Category toggle
+  const handleCategoryChange = (cat) => {
+    updateParams({ category: selectedCategory === cat ? "" : cat });
+  };
+
+  // Price apply (on blur or Enter)
+  const applyPriceFilter = () => {
+    updateParams({ minPrice: localMinPrice, maxPrice: localMaxPrice });
+  };
+
+  const handlePriceKeyDown = (e) => {
+    if (e.key === "Enter") applyPriceFilter();
+  };
+
+  // Rating toggle
+  const handleRatingChange = (value) => {
+    updateParams({ minRating: minRating === value ? "" : value });
+  };
+
+  // Sort change
+  const handleSortChange = (e) => {
+    updateParams({ sort: e.target.value });
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchParams({});
+    setLocalMinPrice("");
+    setLocalMaxPrice("");
+    setCurrentPage(1);
+  };
+
+  const hasActiveFilters =
+    selectedCategory || minPrice || maxPrice || minRating || sort || searchQuery;
 
   // Pagination logic
   const totalPages = Math.ceil(products.length / PRODUCTS_PER_PAGE);
@@ -47,7 +131,11 @@ function Products() {
   return (
     <>
       <Helmet>
-        <title>All Products – ElectroMart | Premium Electronics Store</title>
+        <title>
+          {searchQuery
+            ? `Search: "${searchQuery}" – ElectroMart`
+            : "All Products – ElectroMart | Premium Electronics Store"}
+        </title>
         <meta
           name="description"
           content="Browse our curated collection of premium electronics – smartphones, laptops, audio, wearables, and more. Best prices, free delivery."
@@ -68,12 +156,46 @@ function Products() {
                 className="text-sm font-semibold uppercase tracking-[0.3em]"
                 style={{ color: "var(--color-accent)" }}
               >
-                Explore
+                {searchQuery ? "Search Results" : "Explore"}
               </p>
-              <h1 className="mt-2 text-4xl font-bold">All Products</h1>
+              <h1 className="mt-2 text-4xl font-bold">
+                {searchQuery ? `Results for "${searchQuery}"` : "All Products"}
+              </h1>
               <p className="mt-2" style={{ color: "var(--color-muted)" }}>
                 {products.length} products found
               </p>
+            </div>
+
+            {/* Sort dropdown */}
+            <div className="flex items-center gap-3">
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition"
+                  style={{
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-surface)",
+                    color: "var(--color-body)",
+                  }}
+                >
+                  <FiX size={14} /> Clear Filters
+                </button>
+              )}
+              <select
+                value={sort}
+                onChange={handleSortChange}
+                className="rounded-xl px-3 py-2 text-sm outline-none"
+                style={{
+                  border: "1px solid var(--color-border)",
+                  background: "var(--color-surface-alt)",
+                  color: "var(--color-heading)",
+                }}
+              >
+                <option value="">Sort by</option>
+                <option value="price_asc">Price: Low → High</option>
+                <option value="price_desc">Price: High → Low</option>
+                <option value="rating">Top Rated</option>
+              </select>
             </div>
           </div>
 
@@ -83,17 +205,17 @@ function Products() {
               <div>
                 <h2 className="text-lg font-semibold">Category</h2>
                 <div className="mt-4 space-y-3 text-sm" style={{ color: "var(--color-body)" }}>
-                  {["Mobiles", "Laptops", "Audio", "Wearables", "Cameras", "Speakers"].map(
-                    (category) => (
-                      <label key={category} className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          style={{ accentColor: "var(--color-accent)" }}
-                        />
-                        <span>{category}</span>
-                      </label>
-                    )
-                  )}
+                  {CATEGORIES.map((category) => (
+                    <label key={category} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedCategory === category}
+                        onChange={() => handleCategoryChange(category)}
+                        style={{ accentColor: "var(--color-accent)" }}
+                      />
+                      <span>{category}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
@@ -103,6 +225,10 @@ function Products() {
                   <input
                     type="number"
                     placeholder="Min"
+                    value={localMinPrice}
+                    onChange={(e) => setLocalMinPrice(e.target.value)}
+                    onBlur={applyPriceFilter}
+                    onKeyDown={handlePriceKeyDown}
                     className="rounded-xl px-3 py-2 text-sm outline-none"
                     style={{
                       border: "1px solid var(--color-border)",
@@ -113,6 +239,10 @@ function Products() {
                   <input
                     type="number"
                     placeholder="Max"
+                    value={localMaxPrice}
+                    onChange={(e) => setLocalMaxPrice(e.target.value)}
+                    onBlur={applyPriceFilter}
+                    onKeyDown={handlePriceKeyDown}
                     className="rounded-xl px-3 py-2 text-sm outline-none"
                     style={{
                       border: "1px solid var(--color-border)",
@@ -126,14 +256,18 @@ function Products() {
               <div className="mt-8">
                 <h2 className="text-lg font-semibold">Rating</h2>
                 <div className="mt-4 space-y-3 text-sm" style={{ color: "var(--color-body)" }}>
-                  <label className="flex items-center gap-2">
-                    <input type="radio" name="rating" style={{ accentColor: "var(--color-accent)" }} />
-                    <span>4★ & up</span>
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input type="radio" name="rating" style={{ accentColor: "var(--color-accent)" }} />
-                    <span>3★ & up</span>
-                  </label>
+                  {RATINGS.map((r) => (
+                    <label key={r.value} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="rating"
+                        checked={minRating === r.value}
+                        onChange={() => handleRatingChange(r.value)}
+                        style={{ accentColor: "var(--color-accent)" }}
+                      />
+                      <span>{r.label}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
             </aside>
@@ -150,6 +284,15 @@ function Products() {
                       style={{ color: "var(--color-danger)" }}
                     >
                       {error}
+                    </div>
+                  )
+                  : paginatedProducts.length === 0
+                  ? (
+                    <div
+                      className="col-span-full text-center text-lg py-16"
+                      style={{ color: "var(--color-muted)" }}
+                    >
+                      No products match your filters.
                     </div>
                   )
                   : paginatedProducts.map((product) => (

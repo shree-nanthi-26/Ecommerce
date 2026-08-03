@@ -9,6 +9,10 @@ import Register from "../pages/Register";
 import Checkout from "../pages/Checkout";
 import OrderConfirmation from "../pages/OrderConfirmation";
 import Orders from "../pages/Orders";
+import Categories from "../pages/Categories";
+import Deals from "../pages/Deals";
+import Compare from "../pages/Compare";
+import Support from "../pages/Support";
 import ProtectedRoute from "./ProtectedRoute";
 
 function NotFound() {
@@ -40,6 +44,10 @@ function AppRoutes() {
         <Route path="/register" element={<Register />} />
         <Route path="/products" element={<Products />} />
         <Route path="/products/:id" element={<ProductDetail />} />
+        <Route path="/categories" element={<Categories />} />
+        <Route path="/deals" element={<Deals />} />
+        <Route path="/compare" element={<Compare />} />
+        <Route path="/support" element={<Support />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/wishlist" element={<Wishlist />} />
 
