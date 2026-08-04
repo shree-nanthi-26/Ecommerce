@@ -1,8 +1,7 @@
 import { Helmet } from "react-helmet-async";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { FiX, FiPlus, FiCheck } from "react-icons/fi";
+import { FiX, FiPlus, FiCheck, FiAward } from "react-icons/fi";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { getProductById, getAllProducts } from "../services/productService";
@@ -10,7 +9,7 @@ import { getProductById, getAllProducts } from "../services/productService";
 function Compare() {
   const [searchParams, setSearchParams] = useSearchParams();
   const rawIds = searchParams.get("ids");
-  const productIds = rawIds ? rawIds.split(",").filter(Boolean) : [];
+  const productIds = useMemo(() => (rawIds ? rawIds.split(",").filter(Boolean) : []), [rawIds]);
 
   const [comparedProducts, setComparedProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
@@ -21,11 +20,9 @@ function Compare() {
     async function loadData() {
       try {
         setLoading(true);
-        // Load all products for selector dropdown
         const all = await getAllProducts();
         setAllProducts(all);
 
-        // Fetch products specified in URL
         if (productIds.length > 0) {
           const fetched = await Promise.all(
             productIds.map(async (id) => {
@@ -37,17 +34,14 @@ function Compare() {
             })
           );
           setComparedProducts(fetched.filter(Boolean));
+        } else if (all.length >= 2) {
+          setComparedProducts([all[0], all[1]]);
+          setSearchParams({ ids: `${all[0]._id || all[0].id},${all[1]._id || all[1].id}` });
         } else {
-          // Default to first 2 products if none specified
-          if (all.length >= 2) {
-            setComparedProducts([all[0], all[1]]);
-            setSearchParams({ ids: `${all[0]._id},${all[1]._id}` });
-          } else {
-            setComparedProducts(all);
-          }
+          setComparedProducts(all);
         }
       } catch (err) {
-        console.error("Error loading products for comparison", err);
+        console.error("Error loading comparison data", err);
       } finally {
         setLoading(false);
       }
@@ -63,9 +57,8 @@ function Compare() {
   };
 
   const addProduct = (product) => {
-    if (comparedProducts.some((p) => (p._id || p.id) === (product._id || product.id))) {
-      return;
-    }
+    const prodId = product._id || product.id;
+    if (comparedProducts.some((p) => (p._id || p.id) === prodId)) return;
     if (comparedProducts.length >= 4) {
       alert("You can compare up to 4 products at a time.");
       return;
@@ -76,20 +69,48 @@ function Compare() {
     setSelectorOpen(false);
   };
 
+  // Helper values for spec highlighting
+  const minPrice = useMemo(() => {
+    if (comparedProducts.length === 0) return 0;
+    return Math.min(...comparedProducts.map((p) => p.price || Infinity));
+  }, [comparedProducts]);
+
+  const maxRating = useMemo(() => {
+    if (comparedProducts.length === 0) return 0;
+    return Math.max(...comparedProducts.map((p) => p.rating || 0));
+  }, [comparedProducts]);
+
+  // Helper function to extract numeric values from spec strings like "16 GB" or "512 GB SSD"
+  const parseNum = (str) => {
+    if (!str) return 0;
+    const match = str.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 0;
+  };
+
+  const maxRam = useMemo(() => {
+    if (comparedProducts.length === 0) return 0;
+    return Math.max(...comparedProducts.map((p) => parseNum(p.specs?.ram)));
+  }, [comparedProducts]);
+
+  const maxStorage = useMemo(() => {
+    if (comparedProducts.length === 0) return 0;
+    return Math.max(...comparedProducts.map((p) => parseNum(p.specs?.storage)));
+  }, [comparedProducts]);
+
   return (
     <>
       <Helmet>
         <title>Compare Products – ElectroMart</title>
         <meta
           name="description"
-          content="Compare specifications, features, prices, and ratings of laptops, smartphones, and tech gear side by side."
+          content="Side-by-side spec comparison of laptops, smartphones, and audio gear with best-value highlighting."
         />
       </Helmet>
 
       <Navbar />
 
       <main
-        className="min-h-screen px-8 py-16"
+        className="min-h-screen px-4 sm:px-8 py-16"
         style={{ background: "var(--color-bg)", color: "var(--color-heading)" }}
       >
         <div className="mx-auto max-w-[1500px]">
@@ -103,7 +124,7 @@ function Compare() {
               </p>
               <h1 className="mt-2 text-4xl font-bold">Compare Specifications</h1>
               <p className="mt-2 text-base" style={{ color: "var(--color-muted)" }}>
-                Compare specs side-by-side to make informed decisions
+                Side-by-side specs with best-value highlights
               </p>
             </div>
 
@@ -181,11 +202,10 @@ function Compare() {
               </Link>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-2xl border" style={{ borderColor: "var(--color-border)" }}>
               <table
                 className="w-full border-collapse text-left"
                 style={{
-                  border: "1px solid var(--color-border)",
                   background: "var(--color-surface)",
                 }}
               >
@@ -197,49 +217,80 @@ function Compare() {
                     >
                       Features
                     </th>
-                    {comparedProducts.map((product) => (
-                      <th
-                        key={product._id || product.id}
-                        className="p-6 align-top min-w-[240px]"
-                        style={{ borderLeft: "1px solid var(--color-border)" }}
-                      >
-                        <div className="flex justify-end">
-                          <button
-                            onClick={() => removeProduct(product._id || product.id)}
-                            className="rounded-full p-1 transition hover:bg-[var(--color-surface-alt)]"
-                            style={{ color: "var(--color-muted)" }}
-                            title="Remove"
-                          >
-                            <FiX size={18} />
-                          </button>
-                        </div>
-                        <img
-                          src={product.images?.[0] || product.image}
-                          alt={product.name}
-                          className="h-32 w-full object-contain mb-4 rounded-lg"
-                        />
-                        <h3 className="font-bold text-lg leading-snug">{product.name}</h3>
-                        <p
-                          className="mt-2 text-xl font-extrabold"
-                          style={{ color: "var(--color-accent)" }}
+                    {comparedProducts.map((product) => {
+                      const isBestPrice = product.price === minPrice && comparedProducts.length > 1;
+                      return (
+                        <th
+                          key={product._id || product.id}
+                          className="p-6 align-top min-w-[240px] relative"
+                          style={{ borderLeft: "1px solid var(--color-border)" }}
                         >
-                          ₹{product.price?.toLocaleString()}
-                        </p>
-                      </th>
-                    ))}
+                          <div className="flex justify-between items-center mb-3">
+                            {isBestPrice ? (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 text-xs font-bold">
+                                <FiAward /> Best Price
+                              </span>
+                            ) : <span />}
+                            <button
+                              onClick={() => removeProduct(product._id || product.id)}
+                              className="rounded-full p-1 transition hover:bg-[var(--color-surface-alt)]"
+                              style={{ color: "var(--color-muted)" }}
+                              title="Remove"
+                            >
+                              <FiX size={18} />
+                            </button>
+                          </div>
+                          <img
+                            src={product.images?.[0]?.url || (typeof product.images?.[0] === "string" ? product.images[0] : product.image)}
+                            alt={product.name}
+                            className="h-32 w-full object-contain mb-4 rounded-lg"
+                          />
+                          <h3 className="font-bold text-lg leading-snug">{product.name}</h3>
+                          <p
+                            className="mt-2 text-xl font-extrabold"
+                            style={{ color: isBestPrice ? "var(--color-accent)" : "var(--color-heading)" }}
+                          >
+                            ₹{product.price?.toLocaleString()}
+                          </p>
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody className="divide-y" style={{ borderColor: "var(--color-border)" }}>
+                  {/* Price Row */}
+                  <tr>
+                    <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
+                      Price
+                    </td>
+                    {comparedProducts.map((p) => {
+                      const isBest = p.price === minPrice && comparedProducts.length > 1;
+                      return (
+                        <td
+                          key={p._id || p.id}
+                          className={`p-4 font-bold ${isBest ? "bg-emerald-500/10 text-emerald-400" : ""}`}
+                          style={{ borderLeft: "1px solid var(--color-border)" }}
+                        >
+                          ₹{p.price?.toLocaleString()}
+                          {isBest && <span className="ml-2 text-xs uppercase tracking-wider font-extrabold">(Lowest)</span>}
+                        </td>
+                      );
+                    })}
+                  </tr>
+
+                  {/* Brand Row */}
                   <tr>
                     <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
                       Brand
                     </td>
                     {comparedProducts.map((p) => (
-                      <td key={p._id || p.id} className="p-4" style={{ borderLeft: "1px solid var(--color-border)" }}>
+                      <td key={p._id || p.id} className="p-4 font-medium" style={{ borderLeft: "1px solid var(--color-border)" }}>
                         {p.brand || "N/A"}
                       </td>
                     ))}
                   </tr>
+
+                  {/* Category Row */}
                   <tr>
                     <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
                       Category
@@ -250,66 +301,106 @@ function Compare() {
                       </td>
                     ))}
                   </tr>
+
+                  {/* Rating Row */}
                   <tr>
                     <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
                       Rating
                     </td>
-                    {comparedProducts.map((p) => (
-                      <td key={p._id || p.id} className="p-4 font-semibold" style={{ borderLeft: "1px solid var(--color-border)" }}>
-                        ★ {p.rating} ({p.reviews || 0} reviews)
-                      </td>
-                    ))}
+                    {comparedProducts.map((p) => {
+                      const isBest = p.rating === maxRating && comparedProducts.length > 1;
+                      return (
+                        <td
+                          key={p._id || p.id}
+                          className={`p-4 font-bold ${isBest ? "bg-amber-500/10 text-amber-400" : ""}`}
+                          style={{ borderLeft: "1px solid var(--color-border)" }}
+                        >
+                          ★ {p.rating} ({p.reviews || 0} reviews)
+                          {isBest && <span className="ml-2 text-xs uppercase tracking-wider font-extrabold">(Highest)</span>}
+                        </td>
+                      );
+                    })}
                   </tr>
+
+                  {/* RAM Row */}
+                  <tr>
+                    <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
+                      RAM
+                    </td>
+                    {comparedProducts.map((p) => {
+                      const ramNum = parseNum(p.specs?.ram);
+                      const isBest = ramNum > 0 && ramNum === maxRam && comparedProducts.length > 1;
+                      return (
+                        <td
+                          key={p._id || p.id}
+                          className={`p-4 font-medium ${isBest ? "bg-emerald-500/10 text-emerald-400 font-bold" : ""}`}
+                          style={{ borderLeft: "1px solid var(--color-border)" }}
+                        >
+                          {p.specs?.ram || "N/A"}
+                          {isBest && <span className="ml-2 text-xs font-bold">(Max)</span>}
+                        </td>
+                      );
+                    })}
+                  </tr>
+
+                  {/* Storage Row */}
+                  <tr>
+                    <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
+                      Storage
+                    </td>
+                    {comparedProducts.map((p) => {
+                      const storeNum = parseNum(p.specs?.storage);
+                      const isBest = storeNum > 0 && storeNum === maxStorage && comparedProducts.length > 1;
+                      return (
+                        <td
+                          key={p._id || p.id}
+                          className={`p-4 font-medium ${isBest ? "bg-emerald-500/10 text-emerald-400 font-bold" : ""}`}
+                          style={{ borderLeft: "1px solid var(--color-border)" }}
+                        >
+                          {p.specs?.storage || "N/A"}
+                          {isBest && <span className="ml-2 text-xs font-bold">(Max)</span>}
+                        </td>
+                      );
+                    })}
+                  </tr>
+
+                  {/* Processor Row */}
                   <tr>
                     <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
                       Processor
                     </td>
                     {comparedProducts.map((p) => (
-                      <td key={p._id || p.id} className="p-4" style={{ borderLeft: "1px solid var(--color-border)" }}>
+                      <td key={p._id || p.id} className="p-4 font-medium" style={{ borderLeft: "1px solid var(--color-border)" }}>
                         {p.specs?.processor || "N/A"}
                       </td>
                     ))}
                   </tr>
+
+                  {/* Screen Size / Display */}
                   <tr>
                     <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
-                      RAM
+                      Display
                     </td>
                     {comparedProducts.map((p) => (
-                      <td key={p._id || p.id} className="p-4" style={{ borderLeft: "1px solid var(--color-border)" }}>
-                        {p.specs?.ram || "N/A"}
+                      <td key={p._id || p.id} className="p-4 font-medium" style={{ borderLeft: "1px solid var(--color-border)" }}>
+                        {p.specs?.screenSize || p.specs?.display || "N/A"}
                       </td>
                     ))}
                   </tr>
-                  <tr>
-                    <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
-                      Storage
-                    </td>
-                    {comparedProducts.map((p) => (
-                      <td key={p._id || p.id} className="p-4" style={{ borderLeft: "1px solid var(--color-border)" }}>
-                        {p.specs?.storage || "N/A"}
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
-                      Screen Size
-                    </td>
-                    {comparedProducts.map((p) => (
-                      <td key={p._id || p.id} className="p-4" style={{ borderLeft: "1px solid var(--color-border)" }}>
-                        {p.specs?.screenSize || "N/A"}
-                      </td>
-                    ))}
-                  </tr>
+
+                  {/* OS Row */}
                   <tr>
                     <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
                       OS
                     </td>
                     {comparedProducts.map((p) => (
-                      <td key={p._id || p.id} className="p-4" style={{ borderLeft: "1px solid var(--color-border)" }}>
+                      <td key={p._id || p.id} className="p-4 font-medium" style={{ borderLeft: "1px solid var(--color-border)" }}>
                         {p.specs?.os || "N/A"}
                       </td>
                     ))}
                   </tr>
+
+                  {/* Stock Availability */}
                   <tr>
                     <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
                       Availability

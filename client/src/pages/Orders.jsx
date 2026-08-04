@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import { FiTruck, FiPackage } from "react-icons/fi";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { getMyOrders } from "../services/orderService";
 
 const statusColors = {
-  Placed: "bg-yellow-500 text-black",
-  Confirmed: "bg-blue-500 text-white",
-  Shipped: "bg-purple-500 text-white",
-  Delivered: "bg-green-500 text-white",
-  Cancelled: "bg-red-500 text-white",
+  Placed: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+  Confirmed: "bg-blue-500/10 text-blue-400 border border-blue-500/20",
+  Shipped: "bg-purple-500/10 text-purple-400 border border-purple-500/20",
+  Delivered: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
+  Cancelled: "bg-rose-500/10 text-rose-400 border border-rose-500/20",
 };
 
 function Orders() {
@@ -34,30 +36,71 @@ function Orders() {
 
   return (
     <>
+      <Helmet>
+        <title>My Orders – ElectroMart</title>
+      </Helmet>
+
       <Navbar />
-      <main className="min-h-screen bg-[#0F1115] px-6 py-14 text-white">
+
+      <main
+        className="min-h-screen px-4 sm:px-8 py-14"
+        style={{ background: "var(--color-bg)", color: "var(--color-heading)" }}
+      >
         <div className="mx-auto max-w-[1500px]">
           <div className="mb-10">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
+            <p
+              className="text-sm font-semibold uppercase tracking-[0.3em]"
+              style={{ color: "var(--color-accent)" }}
+            >
               My Orders
             </p>
             <h1 className="mt-2 text-4xl font-bold">Order History</h1>
+            <p className="mt-2 text-sm" style={{ color: "var(--color-muted)" }}>
+              View and track all your past and active orders
+            </p>
           </div>
 
           {loading ? (
-            <div className="rounded-3xl border border-[#2D333D] bg-[#1D222C] p-12 text-center text-white">
+            <div
+              className="rounded-3xl p-12 text-center text-lg"
+              style={{
+                border: "1px solid var(--color-border)",
+                background: "var(--color-surface)",
+                color: "var(--color-muted)",
+              }}
+            >
               Loading your orders...
             </div>
           ) : error ? (
-            <div className="rounded-3xl border border-[#2D333D] bg-[#1D222C] p-12 text-center text-white">
+            <div
+              className="rounded-3xl p-12 text-center text-lg"
+              style={{
+                border: "1px solid var(--color-border)",
+                background: "var(--color-surface)",
+                color: "var(--color-danger)",
+              }}
+            >
               {error}
             </div>
           ) : orders.length === 0 ? (
-            <div className="rounded-3xl border border-[#2D333D] bg-[#1D222C] p-12 text-center text-white">
-              <p className="text-2xl font-semibold">You haven't placed any orders yet.</p>
+            <div
+              className="rounded-3xl p-12 text-center"
+              style={{
+                border: "1px solid var(--color-border)",
+                background: "var(--color-surface)",
+              }}
+            >
+              <p className="text-2xl font-bold">You haven't placed any orders yet.</p>
+              <p className="mt-2 text-sm" style={{ color: "var(--color-muted)" }}>
+                Start exploring our electronics catalog to place your first order.
+              </p>
               <Link
                 to="/products"
-                className="mt-6 inline-flex rounded-2xl bg-green-500 px-5 py-3 font-semibold text-white transition hover:bg-green-600"
+                className="mt-6 inline-flex rounded-xl px-6 py-3 font-semibold text-sm transition"
+                style={{
+                  background: "var(--color-accent)",
+                  color: "#ffffff",
+                }}
               >
                 Shop Products
               </Link>
@@ -65,25 +108,53 @@ function Orders() {
           ) : (
             <div className="grid gap-6">
               {orders.map((order) => (
-                <Link
+                <div
                   key={order._id}
-                  to={`/order-confirmation/${order._id}`}
-                  className="block rounded-3xl border border-[#2D333D] bg-[#1D222C] p-6 transition hover:border-green-500"
+                  className="rounded-3xl p-6 border transition hover:border-[var(--color-accent)]"
+                  style={{
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-surface)",
+                  }}
                 >
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
-                      <p className="text-sm text-[#B8BEC9]">Order ID: {order._id}</p>
-                      <p className="mt-2 text-lg font-semibold text-white">{new Date(order.createdAt).toLocaleDateString()}</p>
+                      <p className="text-xs font-mono" style={{ color: "var(--color-muted)" }}>
+                        Order ID: {order._id}
+                      </p>
+                      <p className="mt-1 text-lg font-bold">
+                        Placed on {new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                      </p>
                     </div>
-                    <div className={`rounded-full px-4 py-2 text-sm font-semibold ${statusColors[order.status]}`}>
-                      {order.status}
+
+                    <div className="flex items-center gap-3">
+                      <span className={`rounded-full px-4 py-1.5 text-xs font-extrabold uppercase tracking-wider ${statusColors[order.status] || "bg-gray-500/10"}`}>
+                        {order.status}
+                      </span>
+
+                      <Link
+                        to={`/orders/${order._id}/track`}
+                        className="flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition"
+                        style={{
+                          background: "var(--color-accent-light)",
+                          color: "var(--color-accent)",
+                        }}
+                      >
+                        <FiTruck size={14} /> Track Order
+                      </Link>
                     </div>
                   </div>
-                  <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-between text-[#B8BEC9]">
-                    <span>{order.items.length} items</span>
-                    <span>Total: ₹{order.totalAmount.toLocaleString("en-IN")}</span>
+
+                  <div className="mt-6 pt-4 border-t flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-sm" style={{ borderColor: "var(--color-border)" }}>
+                    <div className="flex items-center gap-2" style={{ color: "var(--color-muted)" }}>
+                      <FiPackage />
+                      <span>{order.items?.length || 0} items</span>
+                    </div>
+
+                    <p className="font-extrabold text-lg">
+                      Total: ₹{order.totalAmount?.toLocaleString("en-IN")}
+                    </p>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           )}

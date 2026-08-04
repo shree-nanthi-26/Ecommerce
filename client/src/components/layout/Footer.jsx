@@ -6,11 +6,86 @@ import {
   FiMail,
   FiPhone,
   FiMapPin,
+  FiLock,
 } from "react-icons/fi";
+import { Link } from "react-router-dom";
 
-const shopLinks = ["Mobiles", "Laptops", "Audio", "Wearables", "Cameras"];
-const companyLinks = ["About Us", "Careers", "Blog", "Contact", "Support"];
+const shopLinks = [
+  { label: "Mobiles", href: "/products?category=Mobiles" },
+  { label: "Laptops", href: "/products?category=Laptops" },
+  { label: "Audio", href: "/products?category=Audio" },
+  { label: "Wearables", href: "/products?category=Wearables" },
+  { label: "Cameras", href: "/products?category=Cameras" },
+];
+const companyLinks = [
+  { label: "About Us", href: "#" },
+  { label: "Careers", href: "#" },
+  { label: "Blog", href: "#" },
+  { label: "Contact", href: "/support" },
+  { label: "Support", href: "/support" },
+  { label: "Warranty & Returns", href: "/warranty-returns" },
+];
 const socialIcons = [FiFacebook, FiInstagram, FiTwitter, FiYoutube];
+
+// Payment method badges shown in the footer bottom bar
+const paymentMethods = [
+  {
+    id: "razorpay",
+    label: "Razorpay",
+    svg: (
+      <svg viewBox="0 0 50 20" fill="none" xmlns="http://www.w3.org/2000/svg" width="56" height="22" aria-label="Razorpay">
+        <text x="0" y="15" fontSize="10" fontWeight="700" fill="#3395FF" fontFamily="Arial, sans-serif">
+          Razorpay
+        </text>
+      </svg>
+    ),
+  },
+  {
+    id: "upi",
+    label: "UPI",
+    svg: (
+      <svg viewBox="0 0 36 20" fill="none" xmlns="http://www.w3.org/2000/svg" width="36" height="22" aria-label="UPI">
+        <text x="0" y="15" fontSize="12" fontWeight="800" fill="#8B5CF6" fontFamily="Arial, sans-serif">
+          UPI
+        </text>
+      </svg>
+    ),
+  },
+  {
+    id: "visa",
+    label: "Visa",
+    svg: (
+      <svg viewBox="0 0 50 30" fill="none" xmlns="http://www.w3.org/2000/svg" width="44" height="22" aria-label="Visa">
+        <rect width="50" height="30" rx="4" fill="#1A1F71" />
+        <text x="6" y="22" fontSize="14" fontWeight="800" fill="#FFFFFF" fontFamily="Arial, sans-serif" fontStyle="italic">
+          VISA
+        </text>
+      </svg>
+    ),
+  },
+  {
+    id: "mastercard",
+    label: "Mastercard",
+    svg: (
+      <svg viewBox="0 0 40 26" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="26" aria-label="Mastercard">
+        <circle cx="14" cy="13" r="10" fill="#EB001B" />
+        <circle cx="26" cy="13" r="10" fill="#F79E1B" />
+        <path d="M20 6.6A10 10 0 0 1 26 13a10 10 0 0 1-6 6.4A10 10 0 0 1 14 13a10 10 0 0 1 6-6.4z" fill="#FF5F00" />
+      </svg>
+    ),
+  },
+  {
+    id: "rupay",
+    label: "RuPay",
+    svg: (
+      <svg viewBox="0 0 56 26" fill="none" xmlns="http://www.w3.org/2000/svg" width="50" height="22" aria-label="RuPay">
+        <text x="0" y="18" fontSize="13" fontWeight="800" fill="#0F6D3A" fontFamily="Arial, sans-serif">
+          Ru<tspan fill="#F97316">Pay</tspan>
+        </text>
+      </svg>
+    ),
+  },
+];
 
 function Footer() {
   return (
@@ -50,8 +125,8 @@ function Footer() {
             <h4 className="text-lg font-semibold" style={{ color: "#fff" }}>Shop</h4>
             <ul className="mt-4 space-y-3 text-sm">
               {shopLinks.map((link) => (
-                <li key={link}>
-                  <a href="#">{link}</a>
+                <li key={link.label}>
+                  <Link to={link.href}>{link.label}</Link>
                 </li>
               ))}
             </ul>
@@ -62,8 +137,8 @@ function Footer() {
             <h4 className="text-lg font-semibold" style={{ color: "#fff" }}>Company</h4>
             <ul className="mt-4 space-y-3 text-sm">
               {companyLinks.map((link) => (
-                <li key={link}>
-                  <a href="#">{link}</a>
+                <li key={link.label}>
+                  <Link to={link.href}>{link.label}</Link>
                 </li>
               ))}
             </ul>
@@ -86,6 +161,36 @@ function Footer() {
             </div>
           </div>
 
+        </div>
+      </div>
+
+      {/* Payment Methods Strip */}
+      <div style={{ borderTop: "1px solid var(--color-chrome-border)" }} className="py-5">
+        <div className="max-w-[1500px] mx-auto px-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-xs" style={{ color: "var(--color-muted)" }}>
+              <FiLock size={13} style={{ color: "var(--color-accent)" }} />
+              <span>Secure Payments via</span>
+            </div>
+            <div className="flex items-center gap-3 flex-wrap justify-center">
+              {paymentMethods.map((method) => (
+                <div
+                  key={method.id}
+                  className="flex items-center justify-center rounded-lg px-2.5 py-1.5"
+                  style={{
+                    background: "rgba(255,255,255,0.07)",
+                    border: "1px solid var(--color-chrome-border)",
+                    minWidth: "52px",
+                    height: "32px",
+                  }}
+                  title={method.label}
+                  aria-label={method.label}
+                >
+                  {method.svg}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 

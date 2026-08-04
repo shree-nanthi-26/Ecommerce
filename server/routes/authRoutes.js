@@ -1,4 +1,5 @@
 import express from "express";
+import rateLimit from "express-rate-limit";
 import {
   registerUser,
   loginUser,
@@ -8,8 +9,16 @@ import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/register", registerUser);
-router.post("/login", loginUser);
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many login/register attempts from this IP, please try again after 15 minutes." },
+});
+
+router.post("/register", authLimiter, registerUser);
+router.post("/login", authLimiter, loginUser);
 router.get("/me", protect, getMe);
 
 export default router;

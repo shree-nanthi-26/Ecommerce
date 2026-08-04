@@ -49,12 +49,24 @@ const productSchema = new mongoose.Schema(
     brand: {
       type: String,
     },
+    isNewProduct: {
+      type: Boolean,
+      default: false,
+    },
+    isBestseller: {
+      type: Boolean,
+      default: false,
+    },
     specs: {
       ram: { type: String },
       storage: { type: String },
       screenSize: { type: String },
       processor: { type: String },
       os: { type: String },
+      display: { type: String },
+      battery: { type: String },
+      ports: { type: String },
+      warranty: { type: String },
     },
   },
   {

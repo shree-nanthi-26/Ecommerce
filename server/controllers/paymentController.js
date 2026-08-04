@@ -1,21 +1,42 @@
 import crypto from "crypto";
 import razorpay from "../config/razorpay.js";
+import Cart from "../models/Cart.js";
+import Product from "../models/Product.js";
 
 export async function createRazorpayOrder(req, res, next) {
   try {
-    const { amount } = req.body;
-    if (!amount || amount <= 0) {
-      res.status(400);
-      throw new Error("Invalid amount for payment");
-    }
-
     if (!razorpay) {
       res.status(500);
       throw new Error("Razorpay is not configured on server");
     }
 
+    // Fetch user's cart from database
+    const cart = await Cart.findOne({ user: req.user._id });
+    if (!cart || !cart.items || cart.items.length === 0) {
+      res.status(400);
+      throw new Error("Cannot create payment order for empty cart");
+    }
+
+    let itemsTotal = 0;
+    for (const item of cart.items) {
+      const product = await Product.findById(item.product);
+      if (!product) {
+        res.status(404);
+        throw new Error(`Product not found: ${item.product}`);
+      }
+      itemsTotal += product.price * item.quantity;
+    }
+
+    const deliveryFee = itemsTotal > 999 ? 0 : 99;
+    const totalAmount = itemsTotal + deliveryFee;
+
+    if (totalAmount <= 0) {
+      res.status(400);
+      throw new Error("Invalid total amount for payment");
+    }
+
     const order = await razorpay.orders.create({
-      amount: Math.round(amount * 100),
+      amount: Math.round(totalAmount * 100),
       currency: "INR",
       receipt: `receipt_${Date.now()}`,
     });

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { FiUser, FiMail, FiLock } from "react-icons/fi";
 
 function Register() {
   const [name, setName] = useState("");
@@ -29,73 +30,138 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F1115] flex items-center justify-center px-4 py-10 text-white">
-      <div className="w-full max-w-md rounded-3xl border border-[#2D333D] bg-[#1D222C] p-8 shadow-xl">
-        <h1 className="text-3xl font-bold">Register</h1>
-        <p className="mt-2 text-sm text-[#B8BEC9]">Create your ElectroMart account.</p>
+    <div className="min-h-screen flex items-center justify-center px-4 py-10" style={{ background: "var(--color-bg)" }}>
+      <div 
+        className="w-full max-w-md rounded-3xl border p-8 shadow-xl relative overflow-hidden" 
+        style={{ 
+          background: "var(--color-surface)",
+          borderColor: "var(--color-border)",
+        }}
+      >
+        {/* Decorative elements */}
+        <div className="absolute -top-20 -left-20 w-40 h-40 rounded-full blur-3xl opacity-20" style={{ background: "var(--color-accent)" }} />
+        <div className="absolute -bottom-20 -right-20 w-40 h-40 rounded-full blur-3xl opacity-20" style={{ background: "var(--color-primary)" }} />
 
-        {error && (
-          <div className="mt-6 rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-200">
-            {error}
-          </div>
-        )}
+        <div className="relative z-10">
+          <h1 className="text-3xl font-black text-center" style={{ color: "var(--color-heading)" }}>Create Account</h1>
+          <p className="mt-2 text-sm text-center font-medium" style={{ color: "var(--color-muted)" }}>Join ElectroMart today</p>
 
-        <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
-          <div>
-            <label className="text-sm font-semibold text-[#B8BEC9]">Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-[#2D333D] bg-[#0F1115] px-4 py-3 text-white outline-none"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-sm font-semibold text-[#B8BEC9]">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-[#2D333D] bg-[#0F1115] px-4 py-3 text-white outline-none"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-sm font-semibold text-[#B8BEC9]">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-[#2D333D] bg-[#0F1115] px-4 py-3 text-white outline-none"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-sm font-semibold text-[#B8BEC9]">Confirm Password</label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-[#2D333D] bg-[#0F1115] px-4 py-3 text-white outline-none"
-              required
-            />
-          </div>
+          {error && (
+            <div className="mt-6 rounded-2xl px-4 py-3 text-sm flex items-center gap-2" style={{ background: "rgba(239, 68, 68, 0.1)", color: "var(--color-danger)" }}>
+              <span>⚠️</span> {error}
+            </div>
+          )}
 
-          <button
-            type="submit"
-            className="w-full rounded-2xl bg-green-500 px-4 py-3 text-white font-semibold transition hover:bg-green-600"
-          >
-            Register
-          </button>
-        </form>
+          <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
+            <div>
+              <label className="text-sm font-semibold block mb-1.5" style={{ color: "var(--color-body)" }}>Full Name</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none" style={{ color: "var(--color-muted)" }}>
+                  <FiUser />
+                </div>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full rounded-xl border pl-11 pr-4 py-3 outline-none transition-all duration-300"
+                  style={{
+                    background: "var(--color-surface-alt)",
+                    borderColor: "var(--color-border)",
+                    color: "var(--color-heading)"
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = "var(--color-accent)"}
+                  onBlur={(e) => e.target.style.borderColor = "var(--color-border)"}
+                  required
+                  placeholder="John Doe"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-semibold block mb-1.5" style={{ color: "var(--color-body)" }}>Email Address</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none" style={{ color: "var(--color-muted)" }}>
+                  <FiMail />
+                </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-xl border pl-11 pr-4 py-3 outline-none transition-all duration-300"
+                  style={{
+                    background: "var(--color-surface-alt)",
+                    borderColor: "var(--color-border)",
+                    color: "var(--color-heading)"
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = "var(--color-accent)"}
+                  onBlur={(e) => e.target.style.borderColor = "var(--color-border)"}
+                  required
+                  placeholder="john@example.com"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-semibold block mb-1.5" style={{ color: "var(--color-body)" }}>Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none" style={{ color: "var(--color-muted)" }}>
+                  <FiLock />
+                </div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-xl border pl-11 pr-4 py-3 outline-none transition-all duration-300"
+                  style={{
+                    background: "var(--color-surface-alt)",
+                    borderColor: "var(--color-border)",
+                    color: "var(--color-heading)"
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = "var(--color-accent)"}
+                  onBlur={(e) => e.target.style.borderColor = "var(--color-border)"}
+                  required
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-semibold block mb-1.5" style={{ color: "var(--color-body)" }}>Confirm Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none" style={{ color: "var(--color-muted)" }}>
+                  <FiLock />
+                </div>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full rounded-xl border pl-11 pr-4 py-3 outline-none transition-all duration-300"
+                  style={{
+                    background: "var(--color-surface-alt)",
+                    borderColor: "var(--color-border)",
+                    color: "var(--color-heading)"
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = "var(--color-accent)"}
+                  onBlur={(e) => e.target.style.borderColor = "var(--color-border)"}
+                  required
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
 
-        <p className="mt-6 text-center text-sm text-[#B8BEC9]">
-          Already have an account?{' '}
-          <Link to="/login" className="text-green-400 hover:text-green-300">
-            Log in
-          </Link>
-        </p>
+            <button
+              type="submit"
+              className="w-full rounded-xl px-4 py-3 mt-4 text-white font-bold transition hover:-translate-y-0.5 hover:shadow-lg"
+              style={{ background: "var(--color-accent)", boxShadow: "0 4px 14px rgba(16, 185, 129, 0.3)" }}
+            >
+              Sign Up
+            </button>
+          </form>
+
+          <p className="mt-8 text-center text-sm font-medium" style={{ color: "var(--color-muted)" }}>
+            Already have an account?{' '}
+            <Link to="/login" className="transition hover:underline" style={{ color: "var(--color-primary-light)" }}>
+              Log in instead
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

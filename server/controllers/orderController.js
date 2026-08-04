@@ -2,6 +2,7 @@ import crypto from "crypto";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import Cart from "../models/Cart.js";
+import razorpay from "../config/razorpay.js";
 
 export async function createOrder(req, res, next) {
   try {
@@ -66,6 +67,18 @@ export async function createOrder(req, res, next) {
 
     const deliveryFee = itemsTotal > 999 ? 0 : 99;
     const totalAmount = itemsTotal + deliveryFee;
+
+    // Verify online payment amount matches server recalculated totalAmount
+    if (paymentMethod === "ONLINE" && razorpay) {
+      const rzpOrder = await razorpay.orders.fetch(razorpayOrderId);
+      const expectedPaise = Math.round(totalAmount * 100);
+      if (!rzpOrder || rzpOrder.amount !== expectedPaise) {
+        res.status(400);
+        throw new Error(
+          `Payment amount mismatch: Razorpay order amount (${rzpOrder?.amount ? rzpOrder.amount / 100 : 0}) does not match order total (${totalAmount})`
+        );
+      }
+    }
 
     const order = await Order.create({
       user: req.user._id,

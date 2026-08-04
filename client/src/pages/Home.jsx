@@ -3,6 +3,8 @@ import Navbar from "../components/layout/Navbar";
 import Hero from "../components/home/Hero";
 import CategoryGrid from "../components/home/CategoryGrid";
 import FeaturedProducts from "../components/home/FeaturedProducts";
+import WhyBuyFromUs from "../components/home/WhyBuyFromUs";
+import RecentlyViewed from "../components/home/RecentlyViewed";
 import Footer from "../components/layout/Footer";
 
 function Home() {
@@ -21,6 +23,8 @@ function Home() {
         <Hero />
         <CategoryGrid />
         <FeaturedProducts />
+        <WhyBuyFromUs />
+        <RecentlyViewed />
       </main>
       <Footer />
     </>

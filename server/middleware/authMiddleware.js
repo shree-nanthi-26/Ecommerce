@@ -24,3 +24,12 @@ export async function protect(req, res, next) {
     return next(new Error("Not authorized, no token"));
   }
 }
+
+export function admin(req, res, next) {
+  if (req.user && req.user.role === "admin") {
+    next();
+  } else {
+    res.status(403);
+    return next(new Error("Not authorized as an admin"));
+  }
+}

@@ -13,7 +13,19 @@ import Categories from "../pages/Categories";
 import Deals from "../pages/Deals";
 import Compare from "../pages/Compare";
 import Support from "../pages/Support";
+import TrackOrder from "../pages/TrackOrder";
+import WarrantyReturns from "../pages/WarrantyReturns";
+import Profile from "../pages/Profile";
 import ProtectedRoute from "./ProtectedRoute";
+import AdminRoute from "./AdminRoute";
+import AdminLayout from "../components/layout/AdminLayout";
+import AdminDashboard from "../pages/admin/Dashboard";
+import AdminProducts from "../pages/admin/Products";
+import AdminProductForm from "../pages/admin/ProductForm";
+import AdminOrders from "../pages/admin/Orders";
+import AdminUsers from "../pages/admin/Users";
+import AdminWafLogs from "../pages/admin/WafLogs";
+import AdminBlockedIps from "../pages/admin/BlockedIps";
 
 function NotFound() {
   return (
@@ -48,6 +60,7 @@ function AppRoutes() {
         <Route path="/deals" element={<Deals />} />
         <Route path="/compare" element={<Compare />} />
         <Route path="/support" element={<Support />} />
+        <Route path="/warranty-returns" element={<WarrantyReturns />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/wishlist" element={<Wishlist />} />
 
@@ -55,6 +68,21 @@ function AppRoutes() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-confirmation/:id" element={<OrderConfirmation />} />
           <Route path="/orders" element={<Orders />} />
+          <Route path="/orders/:id/track" element={<TrackOrder />} />
+          <Route path="/profile" element={<Profile />} />
+        </Route>
+
+        <Route element={<AdminRoute />}>
+          <Route element={<AdminLayout />}>
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/products" element={<AdminProducts />} />
+            <Route path="/admin/products/new" element={<AdminProductForm />} />
+            <Route path="/admin/products/:id/edit" element={<AdminProductForm />} />
+            <Route path="/admin/orders" element={<AdminOrders />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/attack-logs" element={<AdminWafLogs />} />
+            <Route path="/admin/blocked-ips" element={<AdminBlockedIps />} />
+          </Route>
         </Route>
 
         <Route path="*" element={<NotFound />} />

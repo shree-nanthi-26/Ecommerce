@@ -1,4 +1,4 @@
-import { FiHeart, FiShoppingCart, FiMenu, FiUser, FiSun, FiMoon, FiX } from "react-icons/fi";
+import { FiHeart, FiShoppingCart, FiMenu, FiUser, FiSun, FiMoon, FiX, FiShield } from "react-icons/fi";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Logo from "./Logo";
@@ -14,10 +14,9 @@ function Navbar() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Persist dark mode preference in localStorage
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem("electromart-theme");
-    if (saved === "dark") {
+    if (saved === "dark" || !saved) {
       document.documentElement.setAttribute("data-theme", "dark");
       return true;
     }
@@ -90,6 +89,11 @@ function Navbar() {
             {/* Auth section (desktop) */}
             {user ? (
               <div className="hidden md:flex items-center gap-4">
+                {user.role === "admin" && (
+                  <Link to="/admin/dashboard" className="text-[var(--color-accent)] font-bold">
+                    Admin Panel
+                  </Link>
+                )}
                 <Link to="/orders">My Orders</Link>
                 <button
                   type="button"
@@ -98,7 +102,15 @@ function Navbar() {
                 >
                   Logout
                 </button>
-                <span style={{ color: "var(--color-chrome-text)" }}>{user.name}</span>
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-1.5"
+                  aria-label="My profile"
+                  style={{ color: "var(--color-chrome-text)" }}
+                >
+                  <FiUser size={16} />
+                  {user.name}
+                </Link>
               </div>
             ) : (
               <Link
@@ -165,7 +177,22 @@ function Navbar() {
                 {label}
               </NavLink>
             ))}
-            {!user && (
+            {user ? (
+              <>
+                {user.role === "admin" && (
+                  <Link
+                    to="/admin/dashboard"
+                    onClick={() => setMobileOpen(false)}
+                    className="py-2 flex items-center gap-2 font-bold text-[var(--color-accent)]"
+                  >
+                    <FiShield size={16} /> Admin Panel
+                  </Link>
+                )}
+                <Link to="/profile" onClick={() => setMobileOpen(false)} className="py-2 flex items-center gap-2">
+                  <FiUser size={16} /> My Profile
+                </Link>
+              </>
+            ) : (
               <Link to="/login" onClick={() => setMobileOpen(false)} className="py-2">
                 Account
               </Link>
