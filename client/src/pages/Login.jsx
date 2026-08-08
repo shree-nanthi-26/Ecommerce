@@ -91,6 +91,11 @@ function Login() {
                   placeholder="••••••••"
                 />
               </div>
+              <div className="mt-2 text-right">
+                <Link to="/forgot-password" className="text-xs font-semibold hover:underline" style={{ color: "var(--color-primary-light)" }}>
+                  Forgot password?
+                </Link>
+              </div>
             </div>
 
             <button

@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useState } from "react";
-import { loginUser as loginService, registerUser as registerService } from "../services/authService";
+import { loginUser as loginService, registerUser as registerService, resendVerificationEmail as resendService } from "../services/authService";
 
 const AuthContext = createContext(null);
 
@@ -26,13 +26,24 @@ function AuthProvider({ children }) {
     return data;
   };
 
+  const markVerified = () => {
+    if (user) {
+      const updated = { ...user, isVerified: true };
+      saveUser(updated);
+    }
+  };
+
+  const resendVerification = async () => {
+    return await resendService();
+  };
+
   const logout = () => {
     localStorage.removeItem("electromart_user");
     setUser(null);
   };
 
   const value = useMemo(
-    () => ({ user, login, register, logout }),
+    () => ({ user, login, register, markVerified, resendVerification, logout }),
     [user]
   );
 

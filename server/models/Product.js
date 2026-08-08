@@ -41,6 +41,10 @@ const productSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    lowStockThreshold: {
+      type: Number,
+      default: 5,
+    },
     badge: {
       type: String,
       enum: ["NEW", "SALE", null],

@@ -32,6 +32,9 @@ function ProductCard({ product, onQuickView }) {
       ? "badge badge--sale"
       : null;
 
+  const isOutOfStock = product.stock === 0;
+  const isLowStock = !isOutOfStock && product.stock <= (product.lowStockThreshold || 5);
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 24 }}
@@ -43,6 +46,18 @@ function ProductCard({ product, onQuickView }) {
       <div className="product-card__image-wrap">
         {badgeClass && (
           <span className={badgeClass}>{badgeLabel}</span>
+        )}
+
+        {isOutOfStock && (
+          <span className="absolute top-3 left-3 z-10 rounded-full bg-rose-600 px-2.5 py-1 text-xs font-extrabold text-white shadow-md">
+            OUT OF STOCK
+          </span>
+        )}
+
+        {!isOutOfStock && isLowStock && (
+          <span className="absolute top-3 left-3 z-10 rounded-full bg-amber-500 px-2.5 py-1 text-xs font-extrabold text-white shadow-md">
+            ONLY {product.stock} LEFT
+          </span>
         )}
 
         <button
@@ -64,6 +79,7 @@ function ProductCard({ product, onQuickView }) {
             alt={product.name}
             loading="lazy"
             decoding="async"
+            className={isOutOfStock ? "opacity-60 grayscale" : ""}
           />
         </Link>
 
@@ -113,16 +129,21 @@ function ProductCard({ product, onQuickView }) {
       <div className="product-card__actions">
         <button
           type="button"
-          className="btn-primary w-full"
-          aria-label={`Add ${product.name} to cart`}
+          disabled={isOutOfStock}
+          className={`w-full rounded-xl px-4 py-2.5 font-bold flex items-center justify-center gap-2 transition ${
+            isOutOfStock
+              ? "opacity-50 cursor-not-allowed bg-slate-700 text-slate-400"
+              : "btn-primary"
+          }`}
+          aria-label={isOutOfStock ? `${product.name} is Out of Stock` : `Add ${product.name} to cart`}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            addToCart(product);
+            if (!isOutOfStock) addToCart(product);
           }}
         >
           <FiShoppingCart size={16} />
-          Add to Cart
+          {isOutOfStock ? "Out of Stock" : "Add to Cart"}
         </button>
       </div>
     </motion.article>

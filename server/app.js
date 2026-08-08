@@ -11,6 +11,8 @@ import orderRoutes from "./routes/orderRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import couponRoutes from "./routes/couponRoutes.js";
+import adminCouponRoutes from "./routes/adminCouponRoutes.js";
 import { wafMiddleware } from "./middleware/waf.js";
 import errorHandler from "./middleware/errorHandler.js";
 
@@ -38,6 +40,8 @@ app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/coupons", couponRoutes);
+app.use("/api/admin/coupons", adminCouponRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.get("/", (req, res) => {

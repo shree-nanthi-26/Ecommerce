@@ -3,6 +3,8 @@ import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import AttackLog from "../models/AttackLog.js";
 import BlockedIP from "../models/BlockedIP.js";
+import { sendEmail } from "../utils/sendEmail.js";
+import { orderStatusUpdateTemplate } from "../emailTemplates/orderStatusUpdateTemplate.js";
 
 // @desc    Get dashboard analytics/statistics
 // @route   GET /api/admin/dashboard
@@ -59,6 +61,11 @@ export async function getDashboardStats(req, res, next) {
     const recentAlertsCount = await AttackLog.countDocuments();
     const activeBlockedIPsCount = await BlockedIP.countDocuments({ isActive: true });
 
+    // Low stock products query (stock <= lowStockThreshold or stock <= 5)
+    const lowStockProducts = await Product.find({
+      $expr: { $lte: ["$stock", "$lowStockThreshold"] }
+    }).select("name category price stock lowStockThreshold images").sort({ stock: 1 });
+
     res.json({
       metrics: {
         totalUsers,
@@ -68,10 +75,12 @@ export async function getDashboardStats(req, res, next) {
         avgOrderValue,
         recentAlertsCount,
         activeBlockedIPsCount,
+        lowStockCount: lowStockProducts.length,
       },
       recentOrders,
       dailySales,
       categoryBreakdown,
+      lowStockProducts,
     });
   } catch (error) {
     next(error);
@@ -165,14 +174,28 @@ export async function getOrders(req, res, next) {
 // @access  Private/Admin
 export async function updateOrderStatus(req, res, next) {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate("user", "name email");
     if (!order) {
       res.status(404);
       throw new Error("Order not found");
     }
 
+    const oldStatus = order.status;
     order.status = req.body.status || order.status;
     const updatedOrder = await order.save();
+
+    // Send email notification if status changed
+    if (req.body.status && req.body.status !== oldStatus && order.user && order.user.email) {
+      try {
+        const html = orderStatusUpdateTemplate(order, req.body.status);
+        sendEmail(order.user.email, `Order Status Update #${order._id} - ElectroMart`, html).catch(err =>
+          console.error("Order status update email failed:", err)
+        );
+      } catch (emailErr) {
+        console.error("Failed to trigger order status email:", emailErr);
+      }
+    }
+
     res.json(updatedOrder);
   } catch (error) {
     next(error);

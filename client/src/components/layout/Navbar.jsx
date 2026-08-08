@@ -3,9 +3,10 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Logo from "./Logo";
 import SearchBar from "../common/SearchBar";
+import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
-import { useAuth } from "../../context/AuthContext";
+import EmailVerificationBanner from "../common/EmailVerificationBanner";
 
 function Navbar() {
   const { cartCount } = useCart();
@@ -46,6 +47,7 @@ function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 navbar">
+      <EmailVerificationBanner />
       <div className="max-w-[1500px] mx-auto px-8">
 
         {/* Top Bar */}

@@ -81,8 +81,8 @@ function ProductDetail() {
   const productId = product?._id || product?.id;
 
   // Stock status helpers
-  const isLowStock = product?.stock > 0 && product?.stock <= 10;
   const isOutOfStock = product?.stock === 0;
+  const isLowStock = !isOutOfStock && product?.stock <= (product?.lowStockThreshold || 5);
 
   // EMI Calculations
   const emi3 = product ? Math.round(product.price / 3) : 0;
@@ -311,8 +311,8 @@ function ProductDetail() {
                       <span className="min-w-12 px-4 py-3 text-center font-semibold">{quantity}</span>
                       <button
                         className="px-4 py-3 text-xl transition hover:opacity-75 disabled:opacity-30"
-                        disabled={isOutOfStock}
-                        onClick={() => setQuantity((q) => q + 1)}
+                        disabled={isOutOfStock || quantity >= (product?.stock || 1)}
+                        onClick={() => setQuantity((q) => Math.min(product?.stock || 1, q + 1))}
                         aria-label="Increase quantity"
                       >
                         +
