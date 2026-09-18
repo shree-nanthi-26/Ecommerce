@@ -48,7 +48,7 @@ function SearchBar() {
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="Search for laptops, mobiles, accessories..."
+          placeholder="Search furniture, sofas, beds, tables..."
           className="ml-3 w-full bg-transparent outline-none"
           style={{
             color: "var(--color-heading)",

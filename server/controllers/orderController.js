@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import Cart from "../models/Cart.js";
@@ -8,6 +9,15 @@ import { sendEmail } from "../utils/sendEmail.js";
 import { orderConfirmationTemplate } from "../emailTemplates/orderConfirmationTemplate.js";
 
 export async function createOrder(req, res, next) {
+  const session = await mongoose.startSession();
+  const isReplicaSet = mongoose.connection.client && 
+                       mongoose.connection.client.topology && 
+                       mongoose.connection.client.topology.description.type !== 'Single';
+
+  if (isReplicaSet) {
+    session.startTransaction();
+  }
+
   try {
     const {
       items,
@@ -41,7 +51,7 @@ export async function createOrder(req, res, next) {
         throw new Error("Item quantity must be greater than zero");
       }
 
-      const product = await Product.findById(item.product);
+      const product = await Product.findById(item.product).session(isReplicaSet ? session : null);
       if (!product) {
         res.status(404);
         throw new Error(`Product not found: ${item.product}`);
@@ -76,7 +86,7 @@ export async function createOrder(req, res, next) {
 
     if (couponCode && String(couponCode).trim()) {
       const cleanCode = String(couponCode).trim().toUpperCase();
-      const coupon = await Coupon.findOne({ code: cleanCode });
+      const coupon = await Coupon.findOne({ code: cleanCode }).session(isReplicaSet ? session : null);
 
       if (!coupon) {
         res.status(400);
@@ -121,7 +131,7 @@ export async function createOrder(req, res, next) {
     if (paymentMethod === "ONLINE") {
       if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
         res.status(400);
-        throw new Error("Online payment requires Razorpay payment details");
+        throw new Error("ONLINE payment requires Razorpay payment details");
       }
 
       const expectedSignature = crypto
@@ -147,36 +157,25 @@ export async function createOrder(req, res, next) {
     }
 
     // 4. Atomic Stock Decrement (Prevents race conditions / overselling)
-    const decrementedProducts = [];
-    try {
-      for (const { product, quantity } of productsToUpdate) {
-        const updated = await Product.findOneAndUpdate(
-          { _id: product._id, stock: { $gte: quantity } },
-          { $inc: { stock: -quantity } },
-          { new: true }
-        );
+    for (const { product, quantity } of productsToUpdate) {
+      const updated = await Product.findOneAndUpdate(
+        { _id: product._id, stock: { $gte: quantity } },
+        { $inc: { stock: -quantity } },
+        { new: true, session: isReplicaSet ? session : undefined }
+      );
 
-        if (!updated) {
-          throw new Error(`Item "${product.name}" went out of stock. Please adjust your cart.`);
-        }
-        decrementedProducts.push({ productId: product._id, quantity });
+      if (!updated) {
+        throw new Error(`Item "${product.name}" went out of stock. Please adjust your cart.`);
       }
-    } catch (stockError) {
-      // Rollback any successfully decremented items if one fails mid-way
-      for (const item of decrementedProducts) {
-        await Product.findByIdAndUpdate(item.productId, { $inc: { stock: item.quantity } });
-      }
-      res.status(400);
-      throw stockError;
     }
 
     // 5. Increment Coupon Usage if applicable
     if (appliedCoupon) {
-      await Coupon.findByIdAndUpdate(appliedCoupon._id, { $inc: { usedCount: 1 } });
+      await Coupon.findByIdAndUpdate(appliedCoupon._id, { $inc: { usedCount: 1 } }, { session: isReplicaSet ? session : undefined });
     }
 
     // 6. Create Order
-    const order = await Order.create({
+    const orderData = {
       user: req.user._id,
       items: orderItems,
       shippingAddress,
@@ -190,14 +189,27 @@ export async function createOrder(req, res, next) {
       paidAt: paymentMethod === "ONLINE" ? Date.now() : undefined,
       razorpayOrderId: paymentMethod === "ONLINE" ? razorpayOrderId : undefined,
       razorpayPaymentId: paymentMethod === "ONLINE" ? razorpayPaymentId : undefined,
-    });
+    };
+
+    let order;
+    if (isReplicaSet) {
+      const [createdOrder] = await Order.create([orderData], { session });
+      order = createdOrder;
+    } else {
+      order = await Order.create(orderData);
+    }
 
     // Clear User Cart
     await Cart.findOneAndUpdate(
       { user: req.user._id },
       { items: [] },
-      { new: true }
+      { new: true, session: isReplicaSet ? session : undefined }
     );
+
+    if (isReplicaSet) {
+      await session.commitTransaction();
+    }
+    session.endSession();
 
     // Send Confirmation Email
     try {
@@ -207,7 +219,7 @@ export async function createOrder(req, res, next) {
           orderItems,
           totalPrice: totalAmount,
         });
-        sendEmail(req.user.email, `ElectroMart Order Confirmation #${order._id}`, html).catch(err =>
+        sendEmail(req.user.email, `Furniva Order Confirmation #${order._id}`, html).catch(err =>
           console.error("Order confirmation email failed:", err)
         );
       }
@@ -217,6 +229,10 @@ export async function createOrder(req, res, next) {
 
     res.status(201).json(order);
   } catch (error) {
+    if (isReplicaSet) {
+      await session.abortTransaction();
+    }
+    session.endSession();
     next(error);
   }
 }

@@ -62,21 +62,39 @@ const productSchema = new mongoose.Schema(
       default: false,
     },
     specs: {
-      ram: { type: String },
-      storage: { type: String },
-      screenSize: { type: String },
-      processor: { type: String },
-      os: { type: String },
-      display: { type: String },
-      battery: { type: String },
-      ports: { type: String },
+      material: { type: String },
+      dimensions: { type: String },
+      color: { type: String },
+      roomType: { type: String },
+      seatingCapacity: { type: String },
+      style: { type: String },
+      finish: { type: String },
+      assemblyRequired: { type: String },
+      assemblyTime: { type: String },
+      width: { type: String },
+      height: { type: String },
+      depth: { type: String },
+      weight: { type: String },
+      cushionMaterial: { type: String },
+      careInstructions: { type: String },
+      woodType: { type: String },
+      upholstery: { type: String },
       warranty: { type: String },
+      tvSizeCompatibility: { type: String },
     },
   },
   {
     timestamps: true,
   }
 );
+
+// Indexes for query performance
+productSchema.index({ category: 1 });
+productSchema.index({ brand: 1 });
+productSchema.index({ price: 1 });
+productSchema.index({ rating: -1 });
+productSchema.index({ createdAt: -1 });
+productSchema.index({ name: "text", category: "text", brand: "text", description: "text" });
 
 const Product = mongoose.model("Product", productSchema);
 

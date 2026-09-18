@@ -1,0 +1,66 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Render Infrastructure Blueprint (render.yaml)
+# Deploys Furniva API Web Service + Managed Redis Instance
+# ──────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ── Furniva Backend API ───────────────────────────────────────────────────
+  - type: web
+    name: furniva-api
+    env: node
+    rootDir: server
+    buildCommand: npm ci
+    startCommand: node server.js
+    plan: standard # Or 'starter' / 'pro' depending on load
+    numInstances: 2 # Multi-instance deployment for high availability
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGO_URI
+        sync: false # Set securely in Render dashboard (Atlas Connection String)
+      - key: MONGO_MAX_POOL_SIZE
+        value: "50"
+      - key: MONGO_MIN_POOL_SIZE
+        value: "10"
+      - key: JWT_SECRET
+        generateValue: true # Automatically generate a strong 256-bit random secret
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: furniva-redis
+          property: connectionString
+      - key: CORS_ORIGINS
+        sync: false # e.g. https://furniva.vercel.app
+      - key: CLIENT_URL
+        sync: false # e.g. https://furniva.vercel.app
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+
+  # ── Furniva Managed Redis (Session / Rate Limiting / Caching) ────────────
+  - type: redis
+    name: furniva-redis
+    plan: starter # 25MB RAM starter or Standard for production
+    maxmemoryPolicy: allkeys-lru # Evict least recently used keys when memory fills
+    ipAllowList: [] # Internal only — accessible only by furniva-api

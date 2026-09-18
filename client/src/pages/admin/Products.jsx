@@ -15,7 +15,8 @@ function Products() {
       try {
         setLoading(true);
         const data = await getAllProducts();
-        setProducts(data);
+        const list = Array.isArray(data) ? data : (data?.products || []);
+        setProducts(list);
       } catch (err) {
         setError("Failed to load products list.");
       } finally {
@@ -71,10 +72,10 @@ function Products() {
         >
           <h2 className="text-xl font-bold">No Products Found</h2>
           <p className="mt-2 text-sm mb-6" style={{ color: "var(--color-muted)" }}>
-            Get started by adding your first electronic item.
+            Get started by adding your first furniture piece.
           </p>
           <Link to="/admin/products/new" className="btn-primary inline-flex">
-            Add New Product
+            Add New Furniture Piece
           </Link>
         </div>
       ) : (

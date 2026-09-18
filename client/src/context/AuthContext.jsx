@@ -3,14 +3,20 @@ import { loginUser as loginService, registerUser as registerService, resendVerif
 
 const AuthContext = createContext(null);
 
+const AUTH_STORAGE_KEY = "furniva_user";
+const LEGACY_STORAGE_KEY = "electromart_user"; // Legacy compatibility migration key
+
 function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem("electromart_user");
+    const storedUser =
+      localStorage.getItem(AUTH_STORAGE_KEY) ||
+      localStorage.getItem(LEGACY_STORAGE_KEY);
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
   const saveUser = (userData) => {
-    localStorage.setItem("electromart_user", JSON.stringify(userData));
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userData));
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
     setUser(userData);
   };
 
@@ -38,7 +44,8 @@ function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    localStorage.removeItem("electromart_user");
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
     setUser(null);
   };
 

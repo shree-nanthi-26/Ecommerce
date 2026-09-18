@@ -1,0 +1,2 @@
+# k6 JSON output files land here (ignored by git via .gitignore).
+# This .gitkeep keeps the directory in source control.

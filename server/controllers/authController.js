@@ -32,7 +32,7 @@ export async function registerUser(req, res, next) {
         const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
         const verifyUrl = `${clientUrl}/verify-email/${token}`;
         const html = verifyEmailTemplate(verifyUrl);
-        sendEmail(user.email, "Verify Your ElectroMart Account", html).catch(err =>
+        sendEmail(user.email, "Verify Your Furniva Account", html).catch(err =>
           console.error("Failed to send verification email:", err)
         );
       } catch (mailErr) {
@@ -114,7 +114,7 @@ export async function forgotPassword(req, res, next) {
     const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
     const resetUrl = `${clientUrl}/reset-password/${token}`;
     const html = resetPasswordTemplate(resetUrl);
-    await sendEmail(user.email, "ElectroMart Password Reset", html);
+    await sendEmail(user.email, "Furniva Password Reset", html);
     res.status(200).json({ message: "Password reset email sent if user exists" });
   } catch (error) {
     next(error);
@@ -197,7 +197,7 @@ export async function resendVerification(req, res, next) {
     const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
     const verifyUrl = `${clientUrl}/verify-email/${token}`;
     const html = verifyEmailTemplate(verifyUrl);
-    await sendEmail(user.email, "Verify Your ElectroMart Account", html);
+    await sendEmail(user.email, "Verify Your Furniva Account", html);
 
     res.json({ message: "Verification email resent successfully" });
   } catch (error) {

@@ -36,8 +36,8 @@ function Login() {
         <div className="absolute -bottom-20 -left-20 w-40 h-40 rounded-full blur-3xl opacity-20" style={{ background: "var(--color-accent)" }} />
 
         <div className="relative z-10">
-          <h1 className="text-3xl font-black text-center" style={{ color: "var(--color-heading)" }}>Welcome Back</h1>
-          <p className="mt-2 text-sm text-center font-medium" style={{ color: "var(--color-muted)" }}>Sign in to continue to ElectroMart</p>
+          <h1 className="text-3xl font-serif font-bold text-center" style={{ color: "var(--color-heading)" }}>Welcome Back</h1>
+          <p className="mt-2 text-sm text-center font-medium" style={{ color: "var(--color-muted)" }}>Sign in to continue to Furniva</p>
 
           {error && (
             <div className="mt-6 rounded-2xl px-4 py-3 text-sm flex items-center gap-2" style={{ background: "rgba(239, 68, 68, 0.1)", color: "var(--color-danger)" }}>

@@ -3,6 +3,8 @@ import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import AttackLog from "../models/AttackLog.js";
 import BlockedIP from "../models/BlockedIP.js";
+import AuditLog from "../models/AuditLog.js";
+import { logAudit } from "../services/auditService.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import { orderStatusUpdateTemplate } from "../emailTemplates/orderStatusUpdateTemplate.js";
 
@@ -117,8 +119,17 @@ export async function updateUserRole(req, res, next) {
       throw new Error("You cannot change your own admin status");
     }
 
+    const oldRole = user.role;
     user.role = req.body.role || user.role;
     const updatedUser = await user.save();
+
+    await logAudit(req, {
+      action: "UPDATE_USER_ROLE",
+      target: { type: "User", id: user._id.toString() },
+      oldValue: { role: oldRole },
+      newValue: { role: updatedUser.role }
+    });
+
     res.json({
       _id: updatedUser._id,
       name: updatedUser.name,
@@ -146,7 +157,16 @@ export async function deleteUser(req, res, next) {
       throw new Error("You cannot delete your own account");
     }
 
+    const oldUserData = { name: user.name, email: user.email, role: user.role };
     await user.deleteOne();
+
+    await logAudit(req, {
+      action: "DELETE_USER",
+      target: { type: "User", id: user._id.toString() },
+      oldValue: oldUserData,
+      newValue: null
+    });
+
     res.json({ message: "User deleted successfully" });
   } catch (error) {
     next(error);
@@ -184,11 +204,18 @@ export async function updateOrderStatus(req, res, next) {
     order.status = req.body.status || order.status;
     const updatedOrder = await order.save();
 
+    await logAudit(req, {
+      action: "UPDATE_ORDER_STATUS",
+      target: { type: "Order", id: order._id.toString() },
+      oldValue: { status: oldStatus },
+      newValue: { status: updatedOrder.status }
+    });
+
     // Send email notification if status changed
     if (req.body.status && req.body.status !== oldStatus && order.user && order.user.email) {
       try {
         const html = orderStatusUpdateTemplate(order, req.body.status);
-        sendEmail(order.user.email, `Order Status Update #${order._id} - ElectroMart`, html).catch(err =>
+        sendEmail(order.user.email, `Order Status Update #${order._id} - Furniva`, html).catch(err =>
           console.error("Order status update email failed:", err)
         );
       } catch (emailErr) {
@@ -213,9 +240,27 @@ export async function toggleOrderPayment(req, res, next) {
       throw new Error("Order not found");
     }
 
+    const { reason } = req.body;
+    if (order.paymentMethod === "ONLINE") {
+      if (!reason || !reason.trim()) {
+        res.status(400);
+        throw new Error("Reason is required to manually override online payment status");
+      }
+    }
+
+    const oldIsPaid = order.isPaid;
     order.isPaid = !order.isPaid;
     order.paidAt = order.isPaid ? Date.now() : undefined;
     const updatedOrder = await order.save();
+
+    await logAudit(req, {
+      action: "TOGGLE_ORDER_PAYMENT",
+      target: { type: "Order", id: order._id.toString() },
+      oldValue: { isPaid: oldIsPaid },
+      newValue: { isPaid: updatedOrder.isPaid },
+      reason: order.paymentMethod === "ONLINE" ? reason : undefined
+    });
+
     res.json(updatedOrder);
   } catch (error) {
     next(error);
@@ -261,14 +306,31 @@ export async function blockIP(req, res, next) {
 
     const existingBlock = await BlockedIP.findOne({ ip });
     if (existingBlock) {
+      const oldIsActive = existingBlock.isActive;
       existingBlock.isActive = true;
       existingBlock.reason = reason || existingBlock.reason;
       if (expiresAt) existingBlock.expiresAt = expiresAt;
-      await existingBlock.save();
-      return res.json(existingBlock);
+      const updated = await existingBlock.save();
+
+      await logAudit(req, {
+        action: "BLOCK_IP",
+        target: { type: "BlockedIP", id: ip },
+        oldValue: { isActive: oldIsActive },
+        newValue: { isActive: true, reason: existingBlock.reason, expiresAt: existingBlock.expiresAt }
+      });
+
+      return res.json(updated);
     }
 
     const newBlock = await BlockedIP.create({ ip, reason, expiresAt });
+
+    await logAudit(req, {
+      action: "BLOCK_IP",
+      target: { type: "BlockedIP", id: ip },
+      oldValue: null,
+      newValue: { ip, reason, expiresAt }
+    });
+
     res.status(201).json(newBlock);
   } catch (error) {
     next(error);
@@ -286,9 +348,33 @@ export async function unblockIP(req, res, next) {
       throw new Error("Blocked IP entry not found");
     }
 
+    const oldIsActive = entry.isActive;
     entry.isActive = !entry.isActive;
     const updated = await entry.save();
+
+    await logAudit(req, {
+      action: "TOGGLE_IP_BLOCK",
+      target: { type: "BlockedIP", id: entry._id.toString() },
+      oldValue: { isActive: oldIsActive },
+      newValue: { isActive: updated.isActive }
+    });
+
     res.json(updated);
+  } catch (error) {
+    next(error);
+  }
+}
+
+// @desc    Get all audit logs
+// @route   GET /api/admin/audit-logs
+// @access  Private/Admin
+export async function getAuditLogs(req, res, next) {
+  try {
+    const logs = await AuditLog.find()
+      .populate("admin", "name email")
+      .sort({ timestamp: -1 })
+      .limit(100);
+    res.json(logs);
   } catch (error) {
     next(error);
   }

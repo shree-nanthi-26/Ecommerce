@@ -1,0 +1,8 @@
+# k6 JSON output files — ignored, not committed
+runs/*.json
+
+# Local env with real credentials
+.env
+
+# Node modules (for node-fetch / dotenv if installed)
+node_modules/

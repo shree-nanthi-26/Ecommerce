@@ -20,7 +20,8 @@ function Compare() {
     async function loadData() {
       try {
         setLoading(true);
-        const all = await getAllProducts();
+        const data = await getAllProducts();
+        const all = Array.isArray(data) ? data : (data?.products || []);
         setAllProducts(all);
 
         if (productIds.length > 0) {
@@ -60,7 +61,7 @@ function Compare() {
     const prodId = product._id || product.id;
     if (comparedProducts.some((p) => (p._id || p.id) === prodId)) return;
     if (comparedProducts.length >= 4) {
-      alert("You can compare up to 4 products at a time.");
+      alert("You can compare up to 4 furniture pieces at a time.");
       return;
     }
     const updated = [...comparedProducts, product];
@@ -80,30 +81,22 @@ function Compare() {
     return Math.max(...comparedProducts.map((p) => p.rating || 0));
   }, [comparedProducts]);
 
-  // Helper function to extract numeric values from spec strings like "16 GB" or "512 GB SSD"
-  const parseNum = (str) => {
-    if (!str) return 0;
-    const match = str.match(/\d+/);
-    return match ? parseInt(match[0], 10) : 0;
+  const getFurnitureImg = (product) => {
+    return (
+      product.images?.[0]?.url ||
+      (typeof product.images?.[0] === "string" ? product.images[0] : null) ||
+      product.image ||
+      "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&auto=format&fit=crop&q=80"
+    );
   };
-
-  const maxRam = useMemo(() => {
-    if (comparedProducts.length === 0) return 0;
-    return Math.max(...comparedProducts.map((p) => parseNum(p.specs?.ram)));
-  }, [comparedProducts]);
-
-  const maxStorage = useMemo(() => {
-    if (comparedProducts.length === 0) return 0;
-    return Math.max(...comparedProducts.map((p) => parseNum(p.specs?.storage)));
-  }, [comparedProducts]);
 
   return (
     <>
       <Helmet>
-        <title>Compare Products – ElectroMart</title>
+        <title>Compare Furniture – Furniva | Side-by-Side Specifications</title>
         <meta
           name="description"
-          content="Side-by-side spec comparison of laptops, smartphones, and audio gear with best-value highlighting."
+          content="Side-by-side comparison of furniture pieces: materials, dimensions, style, room type, seating capacity, and craftsmanship warranty."
         />
       </Helmet>
 
@@ -120,11 +113,13 @@ function Compare() {
                 className="text-sm font-semibold uppercase tracking-[0.3em]"
                 style={{ color: "var(--color-accent)" }}
               >
-                Decision Helper
+                Design & Dimensions Helper
               </p>
-              <h1 className="mt-2 text-4xl font-bold">Compare Specifications</h1>
+              <h1 className="mt-2 text-4xl font-serif font-bold tracking-tight">
+                Compare Furniture
+              </h1>
               <p className="mt-2 text-base" style={{ color: "var(--color-muted)" }}>
-                Side-by-side specs with best-value highlights
+                Compare wood types, dimensions, room suitability, and finishes side by side.
               </p>
             </div>
 
@@ -132,25 +127,25 @@ function Compare() {
               <div className="relative">
                 <button
                   onClick={() => setSelectorOpen(!selectorOpen)}
-                  className="flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition"
+                  className="flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition shadow-sm"
                   style={{
                     background: "var(--color-accent)",
                     color: "#ffffff",
                   }}
                 >
-                  <FiPlus size={18} /> Add Product to Compare
+                  <FiPlus size={18} /> Add Furniture to Compare
                 </button>
 
                 {selectorOpen && (
                   <div
-                    className="absolute right-0 top-14 z-50 w-72 max-h-80 overflow-y-auto rounded-xl p-3 shadow-2xl"
+                    className="absolute right-0 top-14 z-50 w-80 max-h-80 overflow-y-auto rounded-xl p-3 shadow-2xl"
                     style={{
                       background: "var(--color-surface)",
                       border: "1px solid var(--color-border)",
                     }}
                   >
                     <p className="px-2 py-1 text-xs font-semibold uppercase" style={{ color: "var(--color-muted)" }}>
-                      Select a product
+                      Select a furniture piece
                     </p>
                     {allProducts.map((prod) => {
                       const isAlreadyAdded = comparedProducts.some(
@@ -163,7 +158,7 @@ function Compare() {
                           onClick={() => addProduct(prod)}
                           className="flex w-full items-center justify-between rounded-lg p-2 text-left text-sm transition hover:bg-[var(--color-surface-alt)] disabled:opacity-40"
                         >
-                          <span className="truncate pr-2">{prod.name}</span>
+                          <span className="truncate pr-2 font-medium">{prod.name}</span>
                           {isAlreadyAdded && <FiCheck size={14} style={{ color: "var(--color-accent)" }} />}
                         </button>
                       );
@@ -176,7 +171,7 @@ function Compare() {
 
           {loading ? (
             <div className="py-20 text-center text-lg" style={{ color: "var(--color-muted)" }}>
-              Loading comparison data...
+              Loading furniture details...
             </div>
           ) : comparedProducts.length === 0 ? (
             <div
@@ -186,9 +181,9 @@ function Compare() {
                 border: "1px solid var(--color-border)",
               }}
             >
-              <h2 className="text-2xl font-bold">No Products Selected</h2>
+              <h2 className="text-2xl font-serif font-bold">No Furniture Selected</h2>
               <p className="mt-2 text-base" style={{ color: "var(--color-muted)" }}>
-                Add products to start comparing specs and prices.
+                Add items to compare dimensions, materials, and prices side by side.
               </p>
               <Link
                 to="/products"
@@ -198,7 +193,7 @@ function Compare() {
                   color: "#ffffff",
                 }}
               >
-                Browse Products
+                Browse Furniture Collection
               </Link>
             </div>
           ) : (
@@ -212,22 +207,22 @@ function Compare() {
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
                     <th
-                      className="w-48 p-4 font-semibold text-sm"
+                      className="w-52 p-4 font-semibold text-sm"
                       style={{ background: "var(--color-surface-alt)", color: "var(--color-muted)" }}
                     >
-                      Features
+                      Specifications
                     </th>
                     {comparedProducts.map((product) => {
                       const isBestPrice = product.price === minPrice && comparedProducts.length > 1;
                       return (
                         <th
                           key={product._id || product.id}
-                          className="p-6 align-top min-w-[240px] relative"
+                          className="p-6 align-top min-w-[260px] relative"
                           style={{ borderLeft: "1px solid var(--color-border)" }}
                         >
                           <div className="flex justify-between items-center mb-3">
                             {isBestPrice ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 text-xs font-bold">
+                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-800/15 text-amber-900 dark:text-amber-300 px-2.5 py-0.5 text-xs font-bold">
                                 <FiAward /> Best Price
                               </span>
                             ) : <span />}
@@ -241,11 +236,12 @@ function Compare() {
                             </button>
                           </div>
                           <img
-                            src={product.images?.[0]?.url || (typeof product.images?.[0] === "string" ? product.images[0] : product.image)}
+                            src={getFurnitureImg(product)}
                             alt={product.name}
-                            className="h-32 w-full object-contain mb-4 rounded-lg"
+                            className="h-36 w-full object-cover mb-4 rounded-xl border"
+                            style={{ borderColor: "var(--color-border)" }}
                           />
-                          <h3 className="font-bold text-lg leading-snug">{product.name}</h3>
+                          <h3 className="font-serif font-bold text-lg leading-snug">{product.name}</h3>
                           <p
                             className="mt-2 text-xl font-extrabold"
                             style={{ color: isBestPrice ? "var(--color-accent)" : "var(--color-heading)" }}
@@ -258,7 +254,7 @@ function Compare() {
                   </tr>
                 </thead>
                 <tbody className="divide-y" style={{ borderColor: "var(--color-border)" }}>
-                  {/* Price Row */}
+                  {/* Price */}
                   <tr>
                     <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
                       Price
@@ -268,7 +264,7 @@ function Compare() {
                       return (
                         <td
                           key={p._id || p.id}
-                          className={`p-4 font-bold ${isBest ? "bg-emerald-500/10 text-emerald-400" : ""}`}
+                          className={`p-4 font-bold ${isBest ? "bg-amber-600/10 text-amber-900 dark:text-amber-200" : ""}`}
                           style={{ borderLeft: "1px solid var(--color-border)" }}
                         >
                           ₹{p.price?.toLocaleString()}
@@ -278,41 +274,116 @@ function Compare() {
                     })}
                   </tr>
 
-                  {/* Brand Row */}
-                  <tr>
-                    <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
-                      Brand
-                    </td>
-                    {comparedProducts.map((p) => (
-                      <td key={p._id || p.id} className="p-4 font-medium" style={{ borderLeft: "1px solid var(--color-border)" }}>
-                        {p.brand || "N/A"}
-                      </td>
-                    ))}
-                  </tr>
-
-                  {/* Category Row */}
+                  {/* Category */}
                   <tr>
                     <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
                       Category
                     </td>
                     {comparedProducts.map((p) => (
                       <td key={p._id || p.id} className="p-4" style={{ borderLeft: "1px solid var(--color-border)" }}>
-                        {p.category}
+                        {p.category || "Furniture"}
                       </td>
                     ))}
                   </tr>
 
-                  {/* Rating Row */}
+                  {/* Material */}
                   <tr>
                     <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
-                      Rating
+                      Primary Material
+                    </td>
+                    {comparedProducts.map((p) => (
+                      <td key={p._id || p.id} className="p-4 font-medium" style={{ borderLeft: "1px solid var(--color-border)" }}>
+                        {p.specs?.material || p.specs?.woodType || "Solid Wood / Premium Fabric"}
+                      </td>
+                    ))}
+                  </tr>
+
+                  {/* Dimensions */}
+                  <tr>
+                    <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
+                      Dimensions (W x D x H)
+                    </td>
+                    {comparedProducts.map((p) => (
+                      <td key={p._id || p.id} className="p-4 font-medium" style={{ borderLeft: "1px solid var(--color-border)" }}>
+                        {p.specs?.dimensions ||
+                          (p.specs?.width ? `${p.specs.width} x ${p.specs.depth || "N/A"} x ${p.specs.height || "N/A"}` : "Standard Sizing")}
+                      </td>
+                    ))}
+                  </tr>
+
+                  {/* Color / Finish */}
+                  <tr>
+                    <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
+                      Color & Finish
+                    </td>
+                    {comparedProducts.map((p) => (
+                      <td key={p._id || p.id} className="p-4 font-medium" style={{ borderLeft: "1px solid var(--color-border)" }}>
+                        {[p.specs?.color, p.specs?.finish].filter(Boolean).join(" • ") || "Natural Walnut Finish"}
+                      </td>
+                    ))}
+                  </tr>
+
+                  {/* Room Type */}
+                  <tr>
+                    <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
+                      Recommended Room
+                    </td>
+                    {comparedProducts.map((p) => (
+                      <td key={p._id || p.id} className="p-4 font-medium" style={{ borderLeft: "1px solid var(--color-border)" }}>
+                        {p.specs?.roomType || p.category || "Living Room"}
+                      </td>
+                    ))}
+                  </tr>
+
+                  {/* Seating / TV Capacity */}
+                  <tr>
+                    <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
+                      Seating / TV Fit
+                    </td>
+                    {comparedProducts.map((p) => (
+                      <td key={p._id || p.id} className="p-4 font-medium" style={{ borderLeft: "1px solid var(--color-border)" }}>
+                        {p.specs?.seatingCapacity ? p.specs.seatingCapacity : p.specs?.tvSizeCompatibility ? `TV: ${p.specs.tvSizeCompatibility}` : "—"}
+                      </td>
+                    ))}
+                  </tr>
+
+                  {/* Style */}
+                  <tr>
+                    <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
+                      Design Style
+                    </td>
+                    {comparedProducts.map((p) => (
+                      <td key={p._id || p.id} className="p-4 font-medium" style={{ borderLeft: "1px solid var(--color-border)" }}>
+                        {p.specs?.style || "Modern Contemporary"}
+                      </td>
+                    ))}
+                  </tr>
+
+                  {/* Assembly */}
+                  <tr>
+                    <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
+                      Assembly
+                    </td>
+                    {comparedProducts.map((p) => (
+                      <td key={p._id || p.id} className="p-4 font-medium" style={{ borderLeft: "1px solid var(--color-border)" }}>
+                        {p.specs?.assemblyRequired !== undefined
+                          ? (p.specs.assemblyRequired ? "Assembly Required (Carpenter Provided)" : "Pre-Assembled")
+                          : "Free Professional Installation Provided"}
+                      </td>
+                    ))}
+                  </tr>
+
+                  {/* Rating */}
+                  <tr>
+                    <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
+                      Customer Rating
                     </td>
                     {comparedProducts.map((p) => {
                       const isBest = p.rating === maxRating && comparedProducts.length > 1;
                       return (
                         <td
                           key={p._id || p.id}
-                          className={`p-4 font-bold ${isBest ? "bg-amber-500/10 text-amber-400" : ""}`}
+                          className={`p-4 font-bold ${isBest ? "bg-amber-500/10 text-amber-800 dark:text-amber-300" : ""}`}
                           style={{ borderLeft: "1px solid var(--color-border)" }}
                         >
                           ★ {p.rating} ({p.reviews || 0} reviews)
@@ -322,85 +393,19 @@ function Compare() {
                     })}
                   </tr>
 
-                  {/* RAM Row */}
+                  {/* Warranty */}
                   <tr>
                     <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
-                      RAM
-                    </td>
-                    {comparedProducts.map((p) => {
-                      const ramNum = parseNum(p.specs?.ram);
-                      const isBest = ramNum > 0 && ramNum === maxRam && comparedProducts.length > 1;
-                      return (
-                        <td
-                          key={p._id || p.id}
-                          className={`p-4 font-medium ${isBest ? "bg-emerald-500/10 text-emerald-400 font-bold" : ""}`}
-                          style={{ borderLeft: "1px solid var(--color-border)" }}
-                        >
-                          {p.specs?.ram || "N/A"}
-                          {isBest && <span className="ml-2 text-xs font-bold">(Max)</span>}
-                        </td>
-                      );
-                    })}
-                  </tr>
-
-                  {/* Storage Row */}
-                  <tr>
-                    <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
-                      Storage
-                    </td>
-                    {comparedProducts.map((p) => {
-                      const storeNum = parseNum(p.specs?.storage);
-                      const isBest = storeNum > 0 && storeNum === maxStorage && comparedProducts.length > 1;
-                      return (
-                        <td
-                          key={p._id || p.id}
-                          className={`p-4 font-medium ${isBest ? "bg-emerald-500/10 text-emerald-400 font-bold" : ""}`}
-                          style={{ borderLeft: "1px solid var(--color-border)" }}
-                        >
-                          {p.specs?.storage || "N/A"}
-                          {isBest && <span className="ml-2 text-xs font-bold">(Max)</span>}
-                        </td>
-                      );
-                    })}
-                  </tr>
-
-                  {/* Processor Row */}
-                  <tr>
-                    <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
-                      Processor
+                      Warranty
                     </td>
                     {comparedProducts.map((p) => (
                       <td key={p._id || p.id} className="p-4 font-medium" style={{ borderLeft: "1px solid var(--color-border)" }}>
-                        {p.specs?.processor || "N/A"}
+                        {p.specs?.warranty || "3-Year Craftsmanship Warranty"}
                       </td>
                     ))}
                   </tr>
 
-                  {/* Screen Size / Display */}
-                  <tr>
-                    <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
-                      Display
-                    </td>
-                    {comparedProducts.map((p) => (
-                      <td key={p._id || p.id} className="p-4 font-medium" style={{ borderLeft: "1px solid var(--color-border)" }}>
-                        {p.specs?.screenSize || p.specs?.display || "N/A"}
-                      </td>
-                    ))}
-                  </tr>
-
-                  {/* OS Row */}
-                  <tr>
-                    <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
-                      OS
-                    </td>
-                    {comparedProducts.map((p) => (
-                      <td key={p._id || p.id} className="p-4 font-medium" style={{ borderLeft: "1px solid var(--color-border)" }}>
-                        {p.specs?.os || "N/A"}
-                      </td>
-                    ))}
-                  </tr>
-
-                  {/* Stock Availability */}
+                  {/* Availability */}
                   <tr>
                     <td className="p-4 font-semibold text-sm" style={{ background: "var(--color-surface-alt)" }}>
                       Availability
@@ -408,9 +413,9 @@ function Compare() {
                     {comparedProducts.map((p) => (
                       <td key={p._id || p.id} className="p-4" style={{ borderLeft: "1px solid var(--color-border)" }}>
                         {p.stock > 0 ? (
-                          <span className="text-emerald-500 font-semibold">In Stock ({p.stock})</span>
+                          <span className="text-emerald-600 font-semibold">In Stock ({p.stock} units)</span>
                         ) : (
-                          <span className="text-rose-500 font-semibold">Out of Stock</span>
+                          <span className="text-rose-500 font-semibold">Made to Order</span>
                         )}
                       </td>
                     ))}

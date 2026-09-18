@@ -4,6 +4,37 @@ import { FiArrowLeft, FiSave, FiUpload, FiRefreshCw } from "react-icons/fi";
 import { getProductById, createProduct, updateProduct } from "../../services/productService";
 import { uploadSingleImage } from "../../services/uploadService";
 
+const FURNITURE_CATEGORIES = [
+  "Sofas & Seating",
+  "Beds & Bedroom",
+  "Dining Furniture",
+  "Living Room",
+  "Tables & Desks",
+  "Storage & Cabinets",
+];
+
+const SPEC_FIELDS = [
+  { name: "material", label: "Primary Material (e.g. Solid Sheesham Wood, Teak, Fabric)" },
+  { name: "color", label: "Color / Upholstery Shade (e.g. Walnut Brown, Warm Ivory)" },
+  { name: "dimensions", label: "Dimensions (e.g. 210 × 90 × 85 cm)" },
+  { name: "width", label: "Width (e.g. 210 cm)" },
+  { name: "height", label: "Height (e.g. 85 cm)" },
+  { name: "depth", label: "Depth (e.g. 90 cm)" },
+  { name: "weight", label: "Weight (e.g. 48 kg)" },
+  { name: "roomType", label: "Recommended Room (e.g. Living Room, Bedroom, Dining Room)" },
+  { name: "style", label: "Design Style (e.g. Mid-Century Modern, Minimalist, Scandinavian)" },
+  { name: "finish", label: "Finish / Polish (e.g. Matte Honey Polish, Oiled Teak, PU Polish)" },
+  { name: "seatingCapacity", label: "Seating Capacity (e.g. 3-Seater, 6-Seater, 1-Person)" },
+  { name: "tvSizeCompatibility", label: "TV Size Compatibility (e.g. Up to 75 inches)" },
+  { name: "assemblyRequired", label: "Assembly (e.g. Free Assembly Included / Pre-Assembled)" },
+  { name: "assemblyTime", label: "Assembly Time (e.g. 20 minutes)" },
+  { name: "woodType", label: "Wood Type (e.g. Kiln-Dried Solid Sheesham, Grade-A Teak)" },
+  { name: "upholstery", label: "Upholstery Fabric (e.g. High-Density Foam & Velvet, Bouclé)" },
+  { name: "cushionMaterial", label: "Cushion Material (e.g. Dual Layer Pocket Spring & HR Foam)" },
+  { name: "warranty", label: "Warranty (e.g. 3-Year Structural Frame Warranty)" },
+  { name: "careInstructions", label: "Care Instructions (e.g. Wipe with clean dry cloth, avoid direct sunlight)" },
+];
+
 function ProductForm() {
   const { id } = useParams();
   const isEdit = Boolean(id);
@@ -16,8 +47,8 @@ function ProductForm() {
 
   const [formData, setFormData] = useState({
     name: "",
-    category: "Mobiles",
-    brand: "",
+    category: "Sofas & Seating",
+    brand: "Furniva Studio",
     price: "",
     oldPrice: "",
     stock: "",
@@ -27,15 +58,25 @@ function ProductForm() {
     isBestseller: false,
     images: [],
     specs: {
-      ram: "",
-      storage: "",
-      screenSize: "",
-      processor: "",
-      os: "",
-      display: "",
-      battery: "",
-      ports: "",
-      warranty: "",
+      material: "",
+      color: "",
+      dimensions: "",
+      width: "",
+      height: "",
+      depth: "",
+      weight: "",
+      roomType: "",
+      style: "",
+      finish: "",
+      seatingCapacity: "",
+      tvSizeCompatibility: "",
+      assemblyRequired: "Free Professional Installation Provided",
+      assemblyTime: "",
+      woodType: "",
+      upholstery: "",
+      cushionMaterial: "",
+      warranty: "3-Year Craftsmanship Warranty",
+      careInstructions: "Wipe with a clean dry microfiber cloth. Keep away from direct sunlight.",
     },
   });
 
@@ -47,8 +88,8 @@ function ProductForm() {
         const data = await getProductById(id);
         setFormData({
           name: data.name || "",
-          category: data.category || "Mobiles",
-          brand: data.brand || "",
+          category: data.category || "Sofas & Seating",
+          brand: data.brand || "Furniva Studio",
           price: data.price || "",
           oldPrice: data.oldPrice || "",
           stock: data.stock || "",
@@ -58,19 +99,23 @@ function ProductForm() {
           isBestseller: data.isBestseller || false,
           images: data.images || [],
           specs: {
-            ram: data.specs?.ram || "",
-            storage: data.specs?.storage || "",
-            screenSize: data.specs?.screenSize || "",
-            processor: data.specs?.processor || "",
-            os: data.specs?.os || "",
-            display: data.specs?.display || "",
-            battery: data.specs?.battery || "",
-            ports: data.specs?.ports || "",
-            warranty: data.specs?.warranty || "",
+            material: data.specs?.material || "",
+            dimensions: data.specs?.dimensions || "",
+            color: data.specs?.color || "",
+            roomType: data.specs?.roomType || "",
+            seatingCapacity: data.specs?.seatingCapacity || "",
+            style: data.specs?.style || "",
+            finish: data.specs?.finish || "",
+            assemblyRequired: data.specs?.assemblyRequired || "Free Professional Installation Provided",
+            warranty: data.specs?.warranty || "3-Year Craftsmanship Warranty",
+            careInstructions: data.specs?.careInstructions || "",
+            woodType: data.specs?.woodType || "",
+            upholstery: data.specs?.upholstery || "",
+            ...data.specs,
           },
         });
       } catch (err) {
-        setError("Failed to load product details for editing.");
+        setError("Failed to load furniture details for editing.");
       } finally {
         setFetching(false);
       }
@@ -104,7 +149,6 @@ function ProductForm() {
     try {
       setUploading(true);
       const res = await uploadSingleImage(file);
-      // res contains { url, publicId }
       setFormData((prev) => ({
         ...prev,
         images: [{ url: res.url, publicId: res.publicId }],
@@ -140,7 +184,7 @@ function ProductForm() {
       }
       navigate("/admin/products");
     } catch (err) {
-      alert("Failed to save product. Check database connection.");
+      alert("Failed to save furniture piece. Check server connection.");
     } finally {
       setLoading(false);
     }
@@ -149,7 +193,7 @@ function ProductForm() {
   if (fetching) {
     return (
       <div className="flex min-h-[400px] items-center justify-center text-lg animate-pulse" style={{ color: "var(--color-muted)" }}>
-        Fetching product information…
+        Fetching furniture information…
       </div>
     );
   }
@@ -168,9 +212,9 @@ function ProductForm() {
           <FiArrowLeft size={18} />
         </Link>
         <div>
-          <h1 className="text-3xl font-extrabold">{isEdit ? "Edit Product" : "Add New Product"}</h1>
+          <h1 className="text-3xl font-serif font-bold">{isEdit ? "Edit Furniture Piece" : "Add New Furniture Piece"}</h1>
           <p className="mt-1 text-sm" style={{ color: "var(--color-muted)" }}>
-            Fill in the information below to {isEdit ? "edit an existing" : "register a new"} tech product
+            Fill in the information below to {isEdit ? "edit an existing" : "register a new"} item in Furniva's catalog
           </p>
         </div>
       </div>
@@ -180,20 +224,20 @@ function ProductForm() {
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Basic specifications grid */}
         <div
-          className="rounded-3xl p-6 sm:p-8 border space-y-6"
+          className="rounded-3xl p-6 sm:p-8 border space-y-6 shadow-sm"
           style={{
             background: "var(--color-surface)",
             borderColor: "var(--color-border)",
           }}
         >
-          <h3 className="font-bold text-lg border-b pb-3" style={{ borderColor: "var(--color-border)" }}>
+          <h3 className="font-serif font-bold text-lg border-b pb-3" style={{ borderColor: "var(--color-border)" }}>
             General Information
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col gap-2">
               <label htmlFor="name-input" className="text-xs font-bold uppercase tracking-wider text-[var(--color-muted)]">
-                Product Name *
+                Furniture Title *
               </label>
               <input
                 id="name-input"
@@ -202,13 +246,14 @@ function ProductForm() {
                 value={formData.name}
                 onChange={handleChange}
                 className="footer__newsletter-input"
+                placeholder="e.g. Royal Oak 3-Seater Velvet Sofa"
                 required
               />
             </div>
 
             <div className="flex flex-col gap-2">
               <label htmlFor="category-select" className="text-xs font-bold uppercase tracking-wider text-[var(--color-muted)]">
-                Category *
+                Furniture Category *
               </label>
               <select
                 id="category-select"
@@ -218,7 +263,7 @@ function ProductForm() {
                 className="footer__newsletter-input"
                 style={{ background: "var(--color-surface-alt)" }}
               >
-                {["Mobiles", "Laptops", "Audio", "Wearables", "Cameras", "Speakers"].map((cat) => (
+                {FURNITURE_CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>
@@ -228,7 +273,7 @@ function ProductForm() {
 
             <div className="flex flex-col gap-2">
               <label htmlFor="brand-input" className="text-xs font-bold uppercase tracking-wider text-[var(--color-muted)]">
-                Brand Name
+                Collection / Brand
               </label>
               <input
                 id="brand-input"
@@ -237,12 +282,13 @@ function ProductForm() {
                 value={formData.brand}
                 onChange={handleChange}
                 className="footer__newsletter-input"
+                placeholder="e.g. Furniva Studio / Artisan Collection"
               />
             </div>
 
             <div className="flex flex-col gap-2">
               <label htmlFor="stock-input" className="text-xs font-bold uppercase tracking-wider text-[var(--color-muted)]">
-                Quantity in Stock
+                Units Available (Stock)
               </label>
               <input
                 id="stock-input"
@@ -251,6 +297,7 @@ function ProductForm() {
                 value={formData.stock}
                 onChange={handleChange}
                 className="footer__newsletter-input"
+                placeholder="10"
                 min="0"
               />
             </div>
@@ -266,6 +313,7 @@ function ProductForm() {
                 value={formData.price}
                 onChange={handleChange}
                 className="footer__newsletter-input"
+                placeholder="24999"
                 required
                 min="1"
               />
@@ -273,7 +321,7 @@ function ProductForm() {
 
             <div className="flex flex-col gap-2">
               <label htmlFor="old-price-input" className="text-xs font-bold uppercase tracking-wider text-[var(--color-muted)]">
-                Original/Old Price (₹)
+                Original MRP / Old Price (₹)
               </label>
               <input
                 id="old-price-input"
@@ -282,13 +330,14 @@ function ProductForm() {
                 value={formData.oldPrice}
                 onChange={handleChange}
                 className="footer__newsletter-input"
+                placeholder="34999"
                 min="1"
               />
             </div>
 
             <div className="flex flex-col gap-2">
               <label htmlFor="badge-select" className="text-xs font-bold uppercase tracking-wider text-[var(--color-muted)]">
-                Product Badge / Tag
+                Featured Badge
               </label>
               <select
                 id="badge-select"
@@ -304,8 +353,8 @@ function ProductForm() {
                 style={{ background: "var(--color-surface-alt)" }}
               >
                 <option value="">None</option>
-                <option value="NEW">New</option>
-                <option value="SALE">Sale</option>
+                <option value="NEW">New Arrival</option>
+                <option value="SALE">Special Sale</option>
               </select>
             </div>
 
@@ -318,7 +367,7 @@ function ProductForm() {
                   onChange={handleChange}
                   className="rounded accent-[var(--color-accent)]"
                 />
-                <span>Set as New Arrival</span>
+                <span>New Arrival</span>
               </label>
 
               <label className="flex items-center gap-2 text-sm font-semibold cursor-pointer">
@@ -329,14 +378,14 @@ function ProductForm() {
                   onChange={handleChange}
                   className="rounded accent-[var(--color-accent)]"
                 />
-                <span>Set as Bestseller</span>
+                <span>Studio Bestseller</span>
               </label>
             </div>
           </div>
 
           <div className="flex flex-col gap-2">
             <label htmlFor="description-input" className="text-xs font-bold uppercase tracking-wider text-[var(--color-muted)]">
-              Product Description
+              Product Story & Description
             </label>
             <textarea
               id="description-input"
@@ -345,25 +394,26 @@ function ProductForm() {
               onChange={handleChange}
               rows="4"
               className="footer__newsletter-input"
+              placeholder="Describe the craftsmanship, comfort, materials, and suitability..."
             />
           </div>
         </div>
 
         {/* Image upload area */}
         <div
-          className="rounded-3xl p-6 sm:p-8 border space-y-6"
+          className="rounded-3xl p-6 sm:p-8 border space-y-6 shadow-sm"
           style={{
             background: "var(--color-surface)",
             borderColor: "var(--color-border)",
           }}
         >
-          <h3 className="font-bold text-lg border-b pb-3" style={{ borderColor: "var(--color-border)" }}>
-            Product Image
+          <h3 className="font-serif font-bold text-lg border-b pb-3" style={{ borderColor: "var(--color-border)" }}>
+            Furniture Imagery
           </h3>
 
           <div className="flex flex-col md:flex-row items-center gap-6">
             <div
-              className="h-40 w-40 rounded-2xl flex items-center justify-center border-2 border-dashed overflow-hidden flex-shrink-0"
+              className="h-44 w-44 rounded-2xl flex items-center justify-center border-2 border-dashed overflow-hidden flex-shrink-0"
               style={{
                 borderColor: "var(--color-border)",
                 background: "var(--color-surface-alt)",
@@ -373,14 +423,14 @@ function ProductForm() {
                 <img src={mainImageUrl} alt="Preview" className="h-full w-full object-cover" />
               ) : (
                 <span className="text-xs font-semibold" style={{ color: "var(--color-muted)" }}>
-                  No Image
+                  No Image Selected
                 </span>
               )}
             </div>
 
             <div className="flex-1 flex flex-col gap-3">
               <p className="text-xs leading-relaxed" style={{ color: "var(--color-muted)" }}>
-                Upload a JPEG/PNG image for the product. Images are routed to Cloudinary CDN servers. Size limit is 5MB.
+                Upload high-resolution photography showcasing the piece in realistic studio or room lighting. Supports JPEG/PNG up to 5MB.
               </p>
               <label className="btn-secondary self-start cursor-pointer flex items-center gap-2 px-5 py-2.5">
                 {uploading ? (
@@ -401,30 +451,20 @@ function ProductForm() {
           </div>
         </div>
 
-        {/* Technical specifications panel */}
+        {/* Furniture specifications panel */}
         <div
-          className="rounded-3xl p-6 sm:p-8 border space-y-6"
+          className="rounded-3xl p-6 sm:p-8 border space-y-6 shadow-sm"
           style={{
             background: "var(--color-surface)",
             borderColor: "var(--color-border)",
           }}
         >
-          <h3 className="font-bold text-lg border-b pb-3" style={{ borderColor: "var(--color-border)" }}>
-            Technical Specifications (Optional)
+          <h3 className="font-serif font-bold text-lg border-b pb-3" style={{ borderColor: "var(--color-border)" }}>
+            Furniture Specifications & Craftsmanship
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[
-              { name: "processor", label: "Processor" },
-              { name: "ram", label: "RAM" },
-              { name: "storage", label: "Storage" },
-              { name: "display", label: "Display type" },
-              { name: "screenSize", label: "Screen size" },
-              { name: "battery", label: "Battery info" },
-              { name: "ports", label: "Ports description" },
-              { name: "os", label: "Operating System" },
-              { name: "warranty", label: "Warranty duration" },
-            ].map((spec) => (
+            {SPEC_FIELDS.map((spec) => (
               <div key={spec.name} className="flex flex-col gap-2">
                 <label htmlFor={`${spec.name}-spec-input`} className="text-xs font-bold uppercase tracking-wider text-[var(--color-muted)]">
                   {spec.label}
@@ -457,7 +497,7 @@ function ProductForm() {
             ) : (
               <FiSave />
             )}
-            <span>{loading ? "Saving changes…" : "Save Product"}</span>
+            <span>{loading ? "Saving changes…" : "Save Furniture Piece"}</span>
           </button>
         </div>
       </form>

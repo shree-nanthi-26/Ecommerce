@@ -14,4 +14,10 @@ const AttackLogSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }
 });
 
+// Indexes for query performance
+AttackLogSchema.index({ ip: 1 });
+AttackLogSchema.index({ timestamp: -1 });
+AttackLogSchema.index({ attackType: 1 });
+AttackLogSchema.index({ severity: -1 });
+
 export default mongoose.model("AttackLog", AttackLogSchema);

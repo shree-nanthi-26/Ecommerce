@@ -10,4 +10,8 @@ const BlockedIPSchema = new mongoose.Schema({
   expiresAt: { type: Date } // optional expiration for temporary bans
 });
 
+// Indexes for query performance
+BlockedIPSchema.index({ ip: 1, isActive: 1 });
+BlockedIPSchema.index({ expiresAt: 1 });
+
 export default mongoose.model("BlockedIP", BlockedIPSchema);

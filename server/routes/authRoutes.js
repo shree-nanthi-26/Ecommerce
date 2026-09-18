@@ -1,5 +1,7 @@
 import express from "express";
 import rateLimit from "express-rate-limit";
+import { RedisStore } from "rate-limit-redis";
+import redis from "../config/redis.js";
 import {
   registerUser,
   loginUser,
@@ -19,6 +21,10 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: "Too many login/register/reset attempts from this IP, please try again after 15 minutes." },
+  skip: () => process.env.NODE_ENV === "test",
+  store: new RedisStore({
+    sendCommand: (...args) => redis.call(...args),
+  }),
 });
 
 router.post("/register", authLimiter, registerUser);

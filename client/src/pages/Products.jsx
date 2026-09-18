@@ -4,14 +4,21 @@ import Footer from "../components/layout/Footer";
 import ProductCard from "../components/product/ProductCard";
 import SkeletonCard from "../components/product/SkeletonCard";
 import QuickViewModal from "../components/product/QuickViewModal";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getAllProducts } from "../services/productService";
 import { useSearchParams } from "react-router-dom";
 import { FiChevronLeft, FiChevronRight, FiX } from "react-icons/fi";
 
 const PRODUCTS_PER_PAGE = 12;
 
-const CATEGORIES = ["Mobiles", "Laptops", "Audio", "Wearables", "Cameras", "Speakers"];
+const CATEGORIES = [
+  "Sofas & Seating",
+  "Beds & Bedroom",
+  "Dining Furniture",
+  "Living Room",
+  "Tables & Desks",
+  "Storage & Cabinets",
+];
 const RATINGS = [
   { value: "4", label: "4★ & up" },
   { value: "3", label: "3★ & up" },
@@ -22,7 +29,8 @@ function Products() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -33,6 +41,7 @@ function Products() {
   const minRating = searchParams.get("minRating") || "";
   const sort = searchParams.get("sort") || "";
   const searchQuery = searchParams.get("q") || "";
+  const currentPage = Number(searchParams.get("page")) || 1;
 
   // Local state for price inputs (update URL on blur/enter)
   const [localMinPrice, setLocalMinPrice] = useState(minPrice);
@@ -56,21 +65,29 @@ function Products() {
             next.delete(key);
           }
         });
+        // Reset to page 1 when filters change (unless page itself is being set)
+        if (!("page" in updates)) {
+          next.delete("page");
+        }
         return next;
       });
-      setCurrentPage(1);
     },
     [setSearchParams]
   );
 
-  // Fetch products when search params change
+  // Fetch products when search params change (server-side pagination)
   useEffect(() => {
     async function fetchProducts() {
       try {
         setLoading(true);
         const params = Object.fromEntries(searchParams);
+        // Ensure page and limit are sent
+        if (!params.page) params.page = "1";
+        if (!params.limit) params.limit = String(PRODUCTS_PER_PAGE);
         const data = await getAllProducts(params);
-        setProducts(data);
+        setProducts(data.products);
+        setTotalProducts(data.total);
+        setTotalPages(data.totalPages);
       } catch (err) {
         setError("Could not load products. Is the server running?");
       } finally {
@@ -78,7 +95,6 @@ function Products() {
       }
     }
     fetchProducts();
-    setCurrentPage(1);
   }, [searchParams]);
 
   // Category toggle
@@ -110,21 +126,13 @@ function Products() {
     setSearchParams({});
     setLocalMinPrice("");
     setLocalMaxPrice("");
-    setCurrentPage(1);
   };
 
   const hasActiveFilters =
     selectedCategory || minPrice || maxPrice || minRating || sort || searchQuery;
 
-  // Pagination logic
-  const totalPages = Math.ceil(products.length / PRODUCTS_PER_PAGE);
-  const paginatedProducts = useMemo(() => {
-    const start = (currentPage - 1) * PRODUCTS_PER_PAGE;
-    return products.slice(start, start + PRODUCTS_PER_PAGE);
-  }, [products, currentPage]);
-
   const goToPage = (page) => {
-    setCurrentPage(page);
+    updateParams({ page: page > 1 ? String(page) : "" });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -133,19 +141,21 @@ function Products() {
       <Helmet>
         <title>
           {searchQuery
-            ? `Search: "${searchQuery}" – ElectroMart`
-            : "All Products – ElectroMart | Premium Electronics Store"}
+            ? `Search: "${searchQuery}" – Furniva`
+            : selectedCategory
+            ? `${selectedCategory} – Furniva`
+            : "Shop Furniture – Furniva"}
         </title>
         <meta
           name="description"
-          content="Browse our curated collection of premium electronics – smartphones, laptops, audio, wearables, and more. Best prices, free delivery."
+          content="Explore furniture designed for comfort, style and everyday living. Handcrafted sofas, beds, dining sets, tables, and storage at Furniva."
         />
       </Helmet>
 
       <Navbar />
 
       <main
-        className="min-h-screen px-8 py-16"
+        className="min-h-screen px-4 sm:px-8 py-16"
         style={{ background: "var(--color-bg)", color: "var(--color-heading)" }}
       >
         <div className="mx-auto max-w-[1500px]">
@@ -153,16 +163,16 @@ function Products() {
           <div className="mb-10 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <p
-                className="text-sm font-semibold uppercase tracking-[0.3em]"
+                className="text-xs font-bold uppercase tracking-[0.3em]"
                 style={{ color: "var(--color-accent)" }}
               >
-                {searchQuery ? "Search Results" : "Explore"}
+                {searchQuery ? "Search Results" : "Furniva Catalog"}
               </p>
-              <h1 className="mt-2 text-4xl font-bold">
-                {searchQuery ? `Results for "${searchQuery}"` : "All Products"}
+              <h1 className="mt-2 text-3xl sm:text-4xl font-bold">
+                {searchQuery ? `Results for "${searchQuery}"` : selectedCategory || "Shop Furniture"}
               </h1>
-              <p className="mt-2" style={{ color: "var(--color-muted)" }}>
-                {products.length} products found
+              <p className="mt-2 text-sm" style={{ color: "var(--color-muted)" }}>
+                {totalProducts} furniture designs available
               </p>
             </div>
 
@@ -191,10 +201,11 @@ function Products() {
                   color: "var(--color-heading)",
                 }}
               >
-                <option value="">Sort by</option>
-                <option value="price_asc">Price: Low → High</option>
-                <option value="price_desc">Price: High → Low</option>
+                <option value="">Featured</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
                 <option value="rating">Top Rated</option>
+                <option value="newest">New Arrivals</option>
               </select>
             </div>
           </div>
@@ -286,7 +297,7 @@ function Products() {
                       {error}
                     </div>
                   )
-                  : paginatedProducts.length === 0
+                  : products.length === 0
                   ? (
                     <div
                       className="col-span-full text-center text-lg py-16"
@@ -295,7 +306,7 @@ function Products() {
                       No products match your filters.
                     </div>
                   )
-                  : paginatedProducts.map((product) => (
+                  : products.map((product) => (
                       <ProductCard
                         key={product._id || product.id}
                         product={product}

@@ -12,6 +12,7 @@ import {
   getBlockedIPs,
   blockIP,
   unblockIP,
+  getAuditLogs,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -37,5 +38,6 @@ router.get("/attack-logs", getAttackLogs);
 router.get("/blocked-ips", getBlockedIPs);
 router.post("/blocked-ips", blockIP);
 router.put("/blocked-ips/:id/unblock", unblockIP);
+router.get("/audit-logs", getAuditLogs);
 
 export default router;

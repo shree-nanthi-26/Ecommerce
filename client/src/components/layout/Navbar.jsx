@@ -16,11 +16,13 @@ function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem("electromart-theme");
-    if (saved === "dark" || !saved) {
+    // Primary key: furniva-theme. electromart-theme is kept for legacy compatibility
+    const saved = localStorage.getItem("furniva-theme") || localStorage.getItem("electromart-theme");
+    if (saved === "dark") {
       document.documentElement.setAttribute("data-theme", "dark");
       return true;
     }
+    document.documentElement.removeAttribute("data-theme");
     return false;
   });
 
@@ -29,16 +31,16 @@ function Navbar() {
     setIsDark(next);
     if (next) {
       document.documentElement.setAttribute("data-theme", "dark");
-      localStorage.setItem("electromart-theme", "dark");
+      localStorage.setItem("furniva-theme", "dark");
     } else {
       document.documentElement.removeAttribute("data-theme");
-      localStorage.setItem("electromart-theme", "light");
+      localStorage.setItem("furniva-theme", "light");
     }
   };
 
   const navLinks = [
     { to: "/", label: "Home" },
-    { to: "/products", label: "Products" },
+    { to: "/products", label: "Shop" },
     { to: "/categories", label: "Categories" },
     { to: "/deals", label: "Deals" },
     { to: "/compare", label: "Compare" },

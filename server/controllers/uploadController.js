@@ -1,6 +1,6 @@
 import cloudinary from "../config/cloudinary.js";
 
-function uploadToCloudinary(fileBuffer, folder = "electromart") {
+function uploadToCloudinary(fileBuffer, folder = "furniva") {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       { folder },

@@ -15,19 +15,9 @@ function QuickViewModal({ product, onClose }) {
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
 
-  if (!product) return null;
-
-  const productId = product._id || product.id;
-  const imageSrc =
-    product.images?.[0]?.url ||
-    (typeof product.images?.[0] === "string" ? product.images[0] : null) ||
-    "https://via.placeholder.com/640x480?text=ElectroMart+Product";
-  const discount = product.oldPrice
-    ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
-    : 0;
-
   // Lock body scroll while modal is open & close on Escape
   useEffect(() => {
+    if (!product) return;
     document.body.style.overflow = "hidden";
     const handleKey = (e) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", handleKey);
@@ -35,7 +25,18 @@ function QuickViewModal({ product, onClose }) {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", handleKey);
     };
-  }, [onClose]);
+  }, [product, onClose]);
+
+  if (!product) return null;
+
+  const productId = product._id || product.id;
+  const imageSrc =
+    product.images?.[0]?.url ||
+    (typeof product.images?.[0] === "string" ? product.images[0] : null) ||
+    "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=640&q=80";
+  const discount = product.oldPrice
+    ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
+    : 0;
 
   return (
     <AnimatePresence>
@@ -108,11 +109,35 @@ function QuickViewModal({ product, onClose }) {
                 )}
               </div>
 
+              {/* Key Furniture Specs */}
+              {(product.specs?.material || product.specs?.dimensions || product.specs?.color) && (
+                <div className="grid grid-cols-2 gap-2 text-xs py-2 border-y" style={{ borderColor: "var(--color-border)" }}>
+                  {product.specs.material && (
+                    <div>
+                      <span style={{ color: "var(--color-muted)" }}>Material: </span>
+                      <span className="font-semibold" style={{ color: "var(--color-heading)" }}>{product.specs.material}</span>
+                    </div>
+                  )}
+                  {product.specs.color && (
+                    <div>
+                      <span style={{ color: "var(--color-muted)" }}>Color: </span>
+                      <span className="font-semibold" style={{ color: "var(--color-heading)" }}>{product.specs.color}</span>
+                    </div>
+                  )}
+                  {product.specs.dimensions && (
+                    <div className="col-span-2">
+                      <span style={{ color: "var(--color-muted)" }}>Dimensions: </span>
+                      <span className="font-semibold" style={{ color: "var(--color-heading)" }}>{product.specs.dimensions}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Description */}
               {product.description && (
-                <p className="text-sm leading-7" style={{ color: "var(--color-body)" }}>
-                  {product.description.slice(0, 200)}
-                  {product.description.length > 200 ? "…" : ""}
+                <p className="text-sm leading-6" style={{ color: "var(--color-body)" }}>
+                  {product.description.slice(0, 160)}
+                  {product.description.length > 160 ? "…" : ""}
                 </p>
               )}
 

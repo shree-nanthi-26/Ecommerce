@@ -11,10 +11,10 @@ function Home() {
   return (
     <>
       <Helmet>
-        <title>ElectroMart – Premium Electronics & Future Tech Store</title>
+        <title>Furniva – Modern Furniture for Beautiful Homes</title>
         <meta
           name="description"
-          content="Shop the latest premium electronics, smartphones, laptops, audio gear, and wearables at ElectroMart. Free delivery, 1-year warranty, and easy returns."
+          content="Shop premium sofas, beds, dining furniture, tables, storage and more at Furniva. Discover stylish furniture designed for comfort and everyday living."
         />
       </Helmet>
 

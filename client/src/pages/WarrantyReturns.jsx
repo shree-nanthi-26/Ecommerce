@@ -1,5 +1,5 @@
 import { Helmet } from "react-helmet-async";
-import { FiShield, FiRefreshCw, FiCheckCircle, FiHelpCircle, FiMail, FiPhone } from "react-icons/fi";
+import { FiShield, FiRefreshCw, FiCheckCircle, FiMail, FiPhone } from "react-icons/fi";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 
@@ -7,10 +7,10 @@ function WarrantyReturns() {
   return (
     <>
       <Helmet>
-        <title>Warranty & Returns Policy – ElectroMart</title>
+        <title>Warranty & Returns Policy – Furniva | Craftsmanship Guarantee</title>
         <meta
           name="description"
-          content="Learn about ElectroMart's 1-year brand warranty, 30-day hassle-free return window, and 100% genuine product authenticity guarantee."
+          content="Learn about Furniva's 3-year craftsmanship warranty, 15-day hassle-free return window, and 100% solid wood authenticity guarantee."
         />
       </Helmet>
 
@@ -27,18 +27,18 @@ function WarrantyReturns() {
               className="text-sm font-semibold uppercase tracking-[0.3em]"
               style={{ color: "var(--color-accent)" }}
             >
-              Customer Guarantee
+              Craftsmanship Assurance
             </p>
-            <h1 className="mt-2 text-4xl sm:text-5xl font-bold">Warranty & Returns</h1>
+            <h1 className="mt-2 text-4xl sm:text-5xl font-serif font-bold tracking-tight">Warranty & Returns</h1>
             <p className="mt-3 text-lg" style={{ color: "var(--color-muted)" }}>
-              Complete peace of mind with our 100% genuine quality promises
+              Every piece of Furniva furniture is backed by our unwavering commitment to enduring quality.
             </p>
           </div>
 
           {/* Three Pillar Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
             <div
-              className="rounded-3xl p-8 border shadow-lg"
+              className="rounded-3xl p-8 border shadow-sm"
               style={{
                 background: "var(--color-surface)",
                 borderColor: "var(--color-border)",
@@ -50,14 +50,14 @@ function WarrantyReturns() {
               >
                 <FiShield size={28} />
               </div>
-              <h2 className="text-2xl font-bold">1-Year Warranty</h2>
+              <h2 className="text-2xl font-serif font-bold">3-Year Warranty</h2>
               <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-muted)" }}>
-                All electronics sold on ElectroMart come with official 1-year manufacturer warranty. Covers hardware defects, battery issues, and internal component failures.
+                All solid wood and upholstered furniture includes a comprehensive 3-year warranty covering frame integrity, joinery, and termite protection.
               </p>
             </div>
 
             <div
-              className="rounded-3xl p-8 border shadow-lg"
+              className="rounded-3xl p-8 border shadow-sm"
               style={{
                 background: "var(--color-surface)",
                 borderColor: "var(--color-border)",
@@ -69,14 +69,14 @@ function WarrantyReturns() {
               >
                 <FiRefreshCw size={28} />
               </div>
-              <h2 className="text-2xl font-bold">30-Day Returns</h2>
+              <h2 className="text-2xl font-serif font-bold">15-Day Easy Returns</h2>
               <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-muted)" }}>
-                Not completely satisfied? Return your product within 30 days of delivery in original packaging for a full refund or instant replacement with zero questions asked.
+                Not the right fit for your living space? Return or exchange any furniture piece within 15 days of delivery with free doorstep disassembly and pickup.
               </p>
             </div>
 
             <div
-              className="rounded-3xl p-8 border shadow-lg"
+              className="rounded-3xl p-8 border shadow-sm"
               style={{
                 background: "var(--color-surface)",
                 borderColor: "var(--color-border)",
@@ -88,62 +88,62 @@ function WarrantyReturns() {
               >
                 <FiCheckCircle size={28} />
               </div>
-              <h2 className="text-2xl font-bold">100% Genuine</h2>
+              <h2 className="text-2xl font-serif font-bold">Kiln-Dried Hardwood</h2>
               <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-muted)" }}>
-                We source directly from authorized brand distributors. Every device comes with serial verification and brand authenticity seals.
+                Crafted from responsibly sourced, seasoned solid wood (Sheesham, Teak, and Oak) engineered to resist warping, cracking, and climate changes.
               </p>
             </div>
           </div>
 
           {/* Details Section */}
           <div
-            className="rounded-3xl p-8 sm:p-12 border mb-16 space-y-8"
+            className="rounded-3xl p-8 sm:p-12 border mb-16 space-y-8 shadow-sm"
             style={{
               background: "var(--color-surface)",
               borderColor: "var(--color-border)",
             }}
           >
             <div>
-              <h3 className="text-2xl font-bold mb-3">How to Initiate a Return or Warranty Claim</h3>
+              <h3 className="text-2xl font-serif font-bold mb-3">How to Initiate a Return or Warranty Claim</h3>
               <ol className="list-decimal list-inside space-y-2 text-sm leading-relaxed" style={{ color: "var(--color-body)" }}>
-                <li>Log in to your ElectroMart account and navigate to <strong>My Orders</strong>.</li>
-                <li>Select the item you wish to return or claim warranty for.</li>
-                <li>Click <strong>Request Return / Support</strong> and specify the reason.</li>
-                <li>Our courier partner will pick up the package from your doorstep within 24–48 hours.</li>
-                <li>Once inspected, refund or replacement will be processed within 3 business days.</li>
+                <li>Log in to your Furniva account and navigate to <strong>My Orders</strong>.</li>
+                <li>Select the furniture piece you wish to return or request service for.</li>
+                <li>Click <strong>Request Return / Service</strong> and upload photos of the item or issue.</li>
+                <li>Our furniture care team will arrange a doorstep inspection and complimentary pickup within 48–72 hours.</li>
+                <li>Refunds are credited to your original payment method within 3–5 business days following pickup.</li>
               </ol>
             </div>
 
             <div className="border-t pt-8" style={{ borderColor: "var(--color-border)" }}>
-              <h3 className="text-2xl font-bold mb-3">Warranty Exclusions</h3>
+              <h3 className="text-2xl font-serif font-bold mb-3">Warranty Exclusions</h3>
               <ul className="list-disc list-inside space-y-2 text-sm leading-relaxed" style={{ color: "var(--color-muted)" }}>
-                <li>Accidental liquid damage or physical drops.</li>
-                <li>Unauthorized third-party repairs or software modifications.</li>
-                <li>Normal wear and tear of cosmetic surfaces and cables.</li>
+                <li>Normal wear and tear of fabric upholstery, leather aging, or cushion softening over time.</li>
+                <li>Damage resulting from improper cleaning chemicals, excessive moisture, or outdoor exposure of indoor furniture.</li>
+                <li>Alterations or structural modifications made without Furniva authorization.</li>
               </ul>
             </div>
           </div>
 
           {/* Help Box */}
           <div
-            className="rounded-3xl p-8 text-center border"
+            className="rounded-3xl p-8 text-center border shadow-sm"
             style={{
               background: "var(--color-surface-alt)",
               borderColor: "var(--color-border)",
             }}
           >
-            <h3 className="text-2xl font-bold">Have Questions About Warranty?</h3>
+            <h3 className="text-2xl font-serif font-bold">Need Assistance With a Warranty Claim?</h3>
             <p className="mt-2 text-sm" style={{ color: "var(--color-muted)" }}>
-              Our dedicated support team is available to assist you with claims and returns.
+              Our customer happiness team is available Monday through Saturday from 9 AM to 8 PM IST.
             </p>
 
             <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
               <a
-                href="mailto:warranty@electromart.com"
+                href="mailto:hello@furniva.com"
                 className="flex items-center gap-2 rounded-xl px-6 py-3 font-semibold text-sm text-white"
                 style={{ background: "var(--color-accent)" }}
               >
-                <FiMail size={16} /> Email Warranty Support
+                <FiMail size={16} /> Email Warranty Support: hello@furniva.com
               </a>
               <a
                 href="tel:18001234567"
@@ -153,7 +153,7 @@ function WarrantyReturns() {
                   borderColor: "var(--color-border)",
                 }}
               >
-                <FiPhone size={16} /> Call Toll Free: 1800-123-4567
+                <FiPhone size={16} /> Toll Free: 1800-123-4567
               </a>
             </div>
           </div>

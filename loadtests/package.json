@@ -1,0 +1,37 @@
+{
+  "name": "furniva-loadtests",
+  "version": "1.0.0",
+  "description": "k6 load-test scenarios for Furniva API",
+  "private": true,
+  "engines": {
+    "k6": ">=0.51.0",
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "seed": "node helpers/seed-test-user.js",
+    "test:browse:100":  "k6 run --out json=runs/browse-100vus.json   scenarios/01-browse-products.js --env MAX_VUS=100   --env RAMP_DURATION=30s --env STEADY_DURATION=60s",
+    "test:browse:1000": "k6 run --out json=runs/browse-1000vus.json  scenarios/01-browse-products.js --env MAX_VUS=1000  --env RAMP_DURATION=60s --env STEADY_DURATION=90s",
+    "test:browse:10000":"k6 run --out json=runs/browse-10000vus.json scenarios/01-browse-products.js --env MAX_VUS=10000 --env RAMP_DURATION=60s --env STEADY_DURATION=60s",
+
+    "test:detail:100":  "k6 run --out json=runs/detail-100vus.json   scenarios/02-product-detail.js  --env MAX_VUS=100   --env RAMP_DURATION=30s --env STEADY_DURATION=120s",
+    "test:detail:1000": "k6 run --out json=runs/detail-1000vus.json  scenarios/02-product-detail.js  --env MAX_VUS=1000  --env RAMP_DURATION=60s --env STEADY_DURATION=120s",
+    "test:detail:10000":"k6 run --out json=runs/detail-10000vus.json scenarios/02-product-detail.js  --env MAX_VUS=10000 --env RAMP_DURATION=60s --env STEADY_DURATION=60s",
+
+    "test:cart:100":    "k6 run --out json=runs/cart-100vus.json     scenarios/03-cart-flow.js       --env MAX_VUS=100   --env RAMP_DURATION=30s --env STEADY_DURATION=120s",
+    "test:cart:1000":   "k6 run --out json=runs/cart-1000vus.json    scenarios/03-cart-flow.js       --env MAX_VUS=1000  --env RAMP_DURATION=60s --env STEADY_DURATION=90s",
+    "test:cart:10000":  "k6 run --out json=runs/cart-10000vus.json   scenarios/03-cart-flow.js       --env MAX_VUS=10000 --env RAMP_DURATION=60s --env STEADY_DURATION=60s",
+
+    "test:mixed:100":   "k6 run --out json=runs/mixed-100vus.json    scenarios/04-mixed-traffic.js   --env CONCURRENCY=100",
+    "test:mixed:1000":  "k6 run --out json=runs/mixed-1000vus.json   scenarios/04-mixed-traffic.js   --env CONCURRENCY=1000",
+    "test:mixed:10000": "k6 run --out json=runs/mixed-10000vus.json  scenarios/04-mixed-traffic.js   --env CONCURRENCY=10000",
+
+    "test:all:100":  "npm run test:browse:100  && npm run test:detail:100  && npm run test:cart:100  && npm run test:mixed:100",
+    "test:all:1000": "npm run test:browse:1000 && npm run test:detail:1000 && npm run test:cart:1000 && npm run test:mixed:1000",
+
+    "report": "node report/analyze.js"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.5",
+    "node-fetch": "^3.3.2"
+  }
+}

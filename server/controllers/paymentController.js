@@ -2,6 +2,7 @@ import crypto from "crypto";
 import razorpay from "../config/razorpay.js";
 import Cart from "../models/Cart.js";
 import Product from "../models/Product.js";
+import Order from "../models/Order.js";
 
 export async function createRazorpayOrder(req, res, next) {
   try {
@@ -71,6 +72,58 @@ export async function verifyPayment(req, res, next) {
     }
 
     res.json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function handleRazorpayWebhook(req, res, next) {
+  try {
+    const signature = req.headers["x-razorpay-signature"];
+    if (!signature) {
+      return res.status(400).json({ status: "failed", message: "Missing Razorpay webhook signature" });
+    }
+
+    const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    if (!secret) {
+      console.warn("RAZORPAY_WEBHOOK_SECRET is not configured");
+      return res.status(500).json({ status: "failed", message: "Webhook secret not configured on server" });
+    }
+
+    // Verify signature using the raw body
+    const shasum = crypto.createHmac("sha256", secret);
+    shasum.update(req.rawBody || "");
+    const digest = shasum.digest("hex");
+
+    if (digest !== signature) {
+      return res.status(400).json({ status: "failed", message: "Invalid signature" });
+    }
+
+    // Signature verified!
+    const { event, payload } = req.body;
+
+    if (event === "payment.captured" || event === "order.paid") {
+      const paymentEntity = payload.payment.entity;
+      const razorpayOrderId = paymentEntity.order_id;
+      const razorpayPaymentId = paymentEntity.id;
+
+      if (razorpayOrderId) {
+        const order = await Order.findOne({ razorpayOrderId });
+        if (order) {
+          if (!order.isPaid) {
+            order.isPaid = true;
+            order.paidAt = new Date();
+            order.razorpayPaymentId = razorpayPaymentId;
+            await order.save();
+            console.log(`Order ${order._id} marked as paid via webhook.`);
+          }
+        } else {
+          console.warn(`Order with razorpayOrderId ${razorpayOrderId} not found in webhook.`);
+        }
+      }
+    }
+
+    res.status(200).json({ status: "ok" });
   } catch (error) {
     next(error);
   }

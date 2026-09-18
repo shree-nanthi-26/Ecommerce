@@ -14,7 +14,8 @@ function FeaturedProducts() {
     async function fetchFeatured() {
       try {
         const data = await getAllProducts();
-        setProducts(data.slice(0, 4));
+        const list = Array.isArray(data) ? data : (data?.products || []);
+        setProducts(list.slice(0, 8));
       } catch (err) {
         console.error("Failed to load featured products:", err);
       } finally {
@@ -25,30 +26,30 @@ function FeaturedProducts() {
   }, []);
 
   return (
-    <section className="px-8 py-20" style={{ background: "var(--color-bg)" }}>
+    <section className="px-6 sm:px-8 py-20" style={{ background: "var(--color-surface)" }}>
       <div className="max-w-[1500px] mx-auto">
-        <div className="flex items-end justify-between mb-10">
+        <div className="flex items-end justify-between mb-12">
           <div>
             <p
-              className="text-sm font-semibold uppercase tracking-[0.3em]"
+              className="text-xs font-bold uppercase tracking-[0.3em]"
               style={{ color: "var(--color-accent)" }}
             >
-              Trending Now
+              Handcrafted Pieces
             </p>
-            <h2 className="text-3xl md:text-4xl font-bold mt-2">
-              Featured Products
+            <h2 className="text-3xl sm:text-4xl font-black mt-2" style={{ color: "var(--color-heading)" }}>
+              Featured Furniture
             </h2>
-            <p className="mt-2" style={{ color: "var(--color-muted)" }}>
-              Handpicked deals just for you
+            <p className="mt-2 text-sm sm:text-base" style={{ color: "var(--color-muted)" }}>
+              Signature comfort and enduring craftsmanship for your home
             </p>
           </div>
 
           <Link
             to="/products"
-            className="hidden md:flex items-center gap-2 transition"
+            className="hidden md:flex items-center gap-2 font-bold text-sm transition hover:gap-3"
             style={{ color: "var(--color-accent)" }}
           >
-            View All <FiArrowRight />
+            Explore All Furniture <FiArrowRight size={16} />
           </Link>
         </div>
 

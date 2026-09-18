@@ -1,11 +1,14 @@
 export function orderConfirmationTemplate(order) {
-  const itemsHtml = (order.orderItems || []).map(item => `
+  const items = order.items || order.orderItems || [];
+  const itemsHtml = items.map(item => `
     <tr>
-      <td style="padding: 12px; border-bottom: 1px solid #334155; color: #f8fafc;">${item.name || 'Product'}</td>
-      <td style="padding: 12px; border-bottom: 1px solid #334155; color: #94a3b8; text-align: center;">${item.qty}</td>
-      <td style="padding: 12px; border-bottom: 1px solid #334155; color: #38bdf8; text-align: right;">₹${item.price}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #E8E2D9; color: #2C2723; font-weight: 500;">${item.name || 'Furniture Item'}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #E8E2D9; color: #736B63; text-align: center;">${item.quantity || item.qty || 1}</td>
+      <td style="padding: 12px; border-bottom: 1px solid #E8E2D9; color: #8B5E3C; font-weight: 600; text-align: right;">₹${(item.price || 0).toLocaleString('en-IN')}</td>
     </tr>
   `).join('');
+
+  const total = order.totalAmount || order.totalPrice || 0;
 
   return `
     <!DOCTYPE html>
@@ -13,27 +16,28 @@ export function orderConfirmationTemplate(order) {
     <head>
       <meta charset="utf-8">
       <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background-color: #1e293b; border-radius: 12px; padding: 32px; border: 1px solid #334155; }
-        .logo { font-size: 24px; font-weight: bold; color: #38bdf8; text-decoration: none; display: inline-block; margin-bottom: 24px; }
-        .h1 { font-size: 20px; font-weight: 600; margin-bottom: 16px; color: #ffffff; }
-        .p { color: #94a3b8; font-size: 15px; line-height: 1.6; margin-bottom: 24px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #F7F4EF; color: #2C2723; margin: 0; padding: 24px; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 16px; padding: 36px; border: 1px solid #DED7CC; box-shadow: 0 4px 20px rgba(44,39,35,0.06); }
+        .logo { font-size: 26px; font-weight: bold; color: #8B5E3C; text-decoration: none; display: inline-block; margin-bottom: 24px; font-family: Georgia, serif; }
+        .h1 { font-size: 22px; font-weight: 700; margin-bottom: 16px; color: #2C2723; font-family: Georgia, serif; }
+        .p { color: #5E574F; font-size: 15px; line-height: 1.6; margin-bottom: 24px; }
         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        th { background-color: #0f172a; padding: 12px; text-align: left; color: #cbd5e1; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
-        .total { text-align: right; font-size: 18px; font-weight: bold; color: #38bdf8; margin-top: 16px; }
-        .footer { margin-top: 32px; font-size: 12px; color: #64748b; border-top: 1px solid #334155; padding-top: 16px; }
+        th { background-color: #F2EDE4; padding: 12px; text-align: left; color: #4A433D; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .total { text-align: right; font-size: 19px; font-weight: bold; color: #8B5E3C; margin-top: 16px; }
+        .perks { background-color: #FAF8F5; border: 1px dashed #DED7CC; border-radius: 12px; padding: 16px; margin: 24px 0; font-size: 14px; color: #5E574F; }
+        .footer { margin-top: 32px; font-size: 12px; color: #9E958C; border-top: 1px solid #E8E2D9; padding-top: 16px; text-align: center; }
       </style>
     </head>
     <body>
       <div class="container">
-        <a href="#" class="logo">⚡ ElectroMart</a>
-        <div class="h1">Order Confirmed! 🎉</div>
-        <p class="p">Thank you for your order! We've received your order <strong>#${order._id}</strong> and are preparing it for shipment.</p>
+        <a href="#" class="logo">🛋️ Furniva</a>
+        <div class="h1">Your Furniture Order is Confirmed! 🎉</div>
+        <p class="p">Thank you for choosing Furniva to elevate your living spaces. We have received your order <strong>#${order._id}</strong> and our master craftsmen are preparing your pieces.</p>
         
         <table>
           <thead>
             <tr>
-              <th>Item</th>
+              <th>Furniture Item</th>
               <th style="text-align: center;">Qty</th>
               <th style="text-align: right;">Price</th>
             </tr>
@@ -44,13 +48,17 @@ export function orderConfirmationTemplate(order) {
         </table>
 
         <div class="total">
-          Total Paid: ₹${order.totalPrice}
+          Total Paid: ₹${total.toLocaleString('en-IN')}
         </div>
 
-        <p class="p" style="margin-top: 24px;">You can track your order status anytime from your account dashboard.</p>
+        <div class="perks">
+          ✨ <strong>Included With Your Order:</strong> Free white-glove doorstep delivery, room-of-choice placement, complimentary in-home carpenter assembly, and our 3-year craftsmanship warranty.
+        </div>
+
+        <p class="p">You can track delivery milestones anytime directly from your Furniva account dashboard.</p>
 
         <div class="footer">
-          &copy; ${new Date().getFullYear()} ElectroMart. All rights reserved.
+          &copy; ${new Date().getFullYear()} Furniva. Handcrafted furniture for beautiful homes. All rights reserved.
         </div>
       </div>
     </body>

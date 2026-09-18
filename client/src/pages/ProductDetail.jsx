@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   FiHeart,
   FiRefreshCw,
@@ -24,10 +24,12 @@ const formatPrice = (value) => `₹${value?.toLocaleString("en-IN") || 0}`;
 
 function ProductDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState("specs");
   const [relatedProducts, setRelatedProducts] = useState([]);
   const { addToCart } = useCart();
@@ -38,15 +40,17 @@ function ProductDetail() {
       try {
         setLoading(true);
         setError(null);
+        setSelectedImageIndex(0);
         const data = await getProductById(id);
         setProduct(data);
 
-        // Save to Recently Viewed in localStorage
+        // Save to Recently Viewed in localStorage (primary: furniva_recently_viewed, fallback: electromart_recently_viewed)
         try {
-          const stored = JSON.parse(localStorage.getItem("electromart_recently_viewed") || "[]");
+          const raw = localStorage.getItem("furniva_recently_viewed") || localStorage.getItem("electromart_recently_viewed");
+          const stored = JSON.parse(raw || "[]");
           const filtered = stored.filter((item) => (item._id || item.id) !== (data._id || data.id));
           const updated = [data, ...filtered].slice(0, 8);
-          localStorage.setItem("electromart_recently_viewed", JSON.stringify(updated));
+          localStorage.setItem("furniva_recently_viewed", JSON.stringify(updated));
         } catch (e) {
           console.error("Failed to save to recently viewed", e);
         }
@@ -73,10 +77,14 @@ function ProductDetail() {
     ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
     : 0;
 
+  const imageList = (
+    product?.images?.map((img) => (typeof img === "string" ? img : img?.url)) || []
+  ).filter(Boolean);
+
   const mainImage =
-    product?.images?.[0]?.url ||
-    (typeof product?.images?.[0] === "string" ? product.images[0] : null) ||
-    "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80";
+    imageList[selectedImageIndex] ||
+    imageList[0] ||
+    "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1200&q=80";
 
   const productId = product?._id || product?.id;
 
@@ -96,7 +104,7 @@ function ProductDetail() {
         name: product.name,
         image: mainImage,
         description: product.description,
-        brand: { "@type": "Brand", name: product.brand || "ElectroMart" },
+        brand: { "@type": "Brand", name: product.brand || "Furniva" },
         offers: {
           "@type": "Offer",
           price: product.price,
@@ -117,7 +125,7 @@ function ProductDetail() {
     <>
       {product && (
         <Helmet>
-          <title>{product.name} – ElectroMart</title>
+          <title>{product.name} – Furniva</title>
           <meta name="description" content={product.description?.slice(0, 160)} />
           <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
         </Helmet>
@@ -183,25 +191,28 @@ function ProductDetail() {
                       alt={product.name}
                       loading="lazy"
                       decoding="async"
-                      className="w-full rounded-2xl object-cover"
-                      style={{ height: "420px" }}
+                      className="w-full rounded-2xl object-cover transition-all duration-300"
+                      style={{ height: "460px" }}
                     />
-                    <div className="mt-4 grid grid-cols-4 gap-3">
-                      {(
-                        product.images
-                          ?.slice(0, 4)
-                          .map((img) => (typeof img === "string" ? img : img?.url)) || [mainImage]
-                      ).map((src, index) => (
-                        <img
-                          key={index}
-                          src={src}
-                          alt={`${product.name} thumbnail ${index + 1}`}
-                          loading="lazy"
-                          className="h-20 rounded-xl object-cover cursor-pointer transition hover:opacity-80"
-                          style={{ border: "1px solid var(--color-border)" }}
-                        />
-                      ))}
-                    </div>
+                    {imageList.length > 1 && (
+                      <div className="mt-4 grid grid-cols-4 gap-3">
+                        {imageList.slice(0, 4).map((src, index) => (
+                          <img
+                            key={index}
+                            src={src}
+                            alt={`${product.name} thumbnail ${index + 1}`}
+                            loading="lazy"
+                            onClick={() => setSelectedImageIndex(index)}
+                            className={`h-20 rounded-xl object-cover cursor-pointer transition-all duration-200 ${
+                              selectedImageIndex === index
+                                ? "ring-2 ring-[var(--color-accent)] opacity-100 scale-105"
+                                : "opacity-70 hover:opacity-100"
+                            }`}
+                            style={{ border: "1px solid var(--color-border)" }}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -330,6 +341,23 @@ function ProductDetail() {
                     </button>
 
                     <button
+                      className="btn-primary"
+                      style={{
+                        background: "var(--color-secondary)",
+                        borderColor: "var(--color-secondary)",
+                        color: "#FFFFFF",
+                      }}
+                      disabled={isOutOfStock}
+                      onClick={() => {
+                        addToCart(product, quantity);
+                        navigate("/checkout");
+                      }}
+                      aria-label={`Buy ${product.name} now`}
+                    >
+                      Buy Now
+                    </button>
+
+                    <button
                       className="btn-secondary"
                       onClick={() => toggleWishlist(product)}
                       aria-label={isInWishlist(productId) ? "Remove from wishlist" : "Add to wishlist"}
@@ -353,13 +381,53 @@ function ProductDetail() {
                     </div>
                     <div className="flex flex-col items-center gap-1.5">
                       <FiShield size={20} style={{ color: "var(--color-accent)" }} />
-                      <span className="font-semibold">1 Year Warranty</span>
+                      <span className="font-semibold">3-Year Warranty</span>
                     </div>
                     <div className="flex flex-col items-center gap-1.5">
                       <FiRefreshCw size={20} style={{ color: "var(--color-accent)" }} />
                       <span className="font-semibold">Easy Returns</span>
                     </div>
                   </div>
+
+                  {/* Dimensions & Room Fit Highlight */}
+                  {(product.specs?.dimensions || product.specs?.seatingCapacity || product.specs?.tvSizeCompatibility || product.specs?.roomType) && (
+                    <div
+                      className="mt-6 rounded-2xl p-5 border"
+                      style={{
+                        background: "var(--color-surface-alt)",
+                        borderColor: "var(--color-border)",
+                      }}
+                    >
+                      <p className="text-xs uppercase font-bold tracking-wider mb-3" style={{ color: "var(--color-accent)" }}>
+                        Dimensions & Room Fit
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                        {product.specs.dimensions && (
+                          <div>
+                            <span style={{ color: "var(--color-muted)" }} className="block">Overall Sizing</span>
+                            <span className="font-bold text-sm" style={{ color: "var(--color-heading)" }}>{product.specs.dimensions}</span>
+                          </div>
+                        )}
+                        {product.specs.tvSizeCompatibility ? (
+                          <div>
+                            <span style={{ color: "var(--color-muted)" }} className="block">TV Compatibility</span>
+                            <span className="font-bold text-sm" style={{ color: "var(--color-heading)" }}>{product.specs.tvSizeCompatibility}</span>
+                          </div>
+                        ) : product.specs.seatingCapacity && product.specs.seatingCapacity !== "N/A" ? (
+                          <div>
+                            <span style={{ color: "var(--color-muted)" }} className="block">Seating Capacity</span>
+                            <span className="font-bold text-sm" style={{ color: "var(--color-heading)" }}>{product.specs.seatingCapacity}</span>
+                          </div>
+                        ) : null}
+                        {product.specs.roomType && (
+                          <div>
+                            <span style={{ color: "var(--color-muted)" }} className="block">Ideal Room</span>
+                            <span className="font-bold text-sm" style={{ color: "var(--color-heading)" }}>{product.specs.roomType}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -414,54 +482,107 @@ function ProductDetail() {
                       <table className="w-full text-left text-sm border-collapse">
                         <tbody>
                           <tr className="border-b" style={{ borderColor: "var(--color-border)" }}>
-                            <td className="py-3 px-4 font-semibold w-48" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Brand</td>
-                            <td className="py-3 px-4 font-medium">{product.brand || "ElectroMart Certified"}</td>
+                            <td className="py-3.5 px-4 font-semibold w-48" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Collection / Brand</td>
+                            <td className="py-3.5 px-4 font-medium">{product.brand || "Furniva Atelier"}</td>
                           </tr>
-                          {product.specs?.processor && (
+                          {product.specs?.material && (
                             <tr className="border-b" style={{ borderColor: "var(--color-border)" }}>
-                              <td className="py-3 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Processor</td>
-                              <td className="py-3 px-4 font-medium">{product.specs.processor}</td>
+                              <td className="py-3.5 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Material</td>
+                              <td className="py-3.5 px-4 font-medium">{product.specs.material}</td>
                             </tr>
                           )}
-                          {product.specs?.ram && (
+                          {product.specs?.woodType && (
                             <tr className="border-b" style={{ borderColor: "var(--color-border)" }}>
-                              <td className="py-3 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>RAM</td>
-                              <td className="py-3 px-4 font-medium">{product.specs.ram}</td>
+                              <td className="py-3.5 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Wood Type</td>
+                              <td className="py-3.5 px-4 font-medium">{product.specs.woodType}</td>
                             </tr>
                           )}
-                          {product.specs?.storage && (
+                          {product.specs?.upholstery && (
                             <tr className="border-b" style={{ borderColor: "var(--color-border)" }}>
-                              <td className="py-3 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Storage</td>
-                              <td className="py-3 px-4 font-medium">{product.specs.storage}</td>
+                              <td className="py-3.5 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Upholstery Fabric</td>
+                              <td className="py-3.5 px-4 font-medium">{product.specs.upholstery}</td>
                             </tr>
                           )}
-                          {(product.specs?.screenSize || product.specs?.display) && (
+                          {product.specs?.cushionMaterial && (
                             <tr className="border-b" style={{ borderColor: "var(--color-border)" }}>
-                              <td className="py-3 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Display / Screen</td>
-                              <td className="py-3 px-4 font-medium">{product.specs.screenSize || product.specs.display}</td>
+                              <td className="py-3.5 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Cushion Filling</td>
+                              <td className="py-3.5 px-4 font-medium">{product.specs.cushionMaterial}</td>
                             </tr>
                           )}
-                          {product.specs?.battery && (
+                          {product.specs?.color && (
                             <tr className="border-b" style={{ borderColor: "var(--color-border)" }}>
-                              <td className="py-3 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Battery</td>
-                              <td className="py-3 px-4 font-medium">{product.specs.battery}</td>
+                              <td className="py-3.5 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Color</td>
+                              <td className="py-3.5 px-4 font-medium">{product.specs.color}</td>
                             </tr>
                           )}
-                          {product.specs?.ports && (
+                          {product.specs?.dimensions && (
                             <tr className="border-b" style={{ borderColor: "var(--color-border)" }}>
-                              <td className="py-3 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Ports</td>
-                              <td className="py-3 px-4 font-medium">{product.specs.ports}</td>
+                              <td className="py-3.5 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Dimensions</td>
+                              <td className="py-3.5 px-4 font-medium">{product.specs.dimensions}</td>
                             </tr>
                           )}
-                          {product.specs?.os && (
+                          {product.specs?.width && product.specs?.height && (
                             <tr className="border-b" style={{ borderColor: "var(--color-border)" }}>
-                              <td className="py-3 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Operating System</td>
-                              <td className="py-3 px-4 font-medium">{product.specs.os}</td>
+                              <td className="py-3.5 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Width × Height × Depth</td>
+                              <td className="py-3.5 px-4 font-medium">
+                                {product.specs.width} × {product.specs.height} {product.specs.depth ? `× ${product.specs.depth}` : ""}
+                              </td>
+                            </tr>
+                          )}
+                          {product.specs?.weight && (
+                            <tr className="border-b" style={{ borderColor: "var(--color-border)" }}>
+                              <td className="py-3.5 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Weight</td>
+                              <td className="py-3.5 px-4 font-medium">{product.specs.weight}</td>
+                            </tr>
+                          )}
+                          {product.specs?.tvSizeCompatibility && (
+                            <tr className="border-b" style={{ borderColor: "var(--color-border)" }}>
+                              <td className="py-3.5 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>TV Size Compatibility</td>
+                              <td className="py-3.5 px-4 font-medium">{product.specs.tvSizeCompatibility}</td>
+                            </tr>
+                          )}
+                          {!product.specs?.tvSizeCompatibility && product.specs?.seatingCapacity && product.specs.seatingCapacity !== "N/A" && (
+                            <tr className="border-b" style={{ borderColor: "var(--color-border)" }}>
+                              <td className="py-3.5 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Seating Capacity</td>
+                              <td className="py-3.5 px-4 font-medium">{product.specs.seatingCapacity}</td>
+                            </tr>
+                          )}
+                          {product.specs?.roomType && (
+                            <tr className="border-b" style={{ borderColor: "var(--color-border)" }}>
+                              <td className="py-3.5 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Room Type</td>
+                              <td className="py-3.5 px-4 font-medium">{product.specs.roomType}</td>
+                            </tr>
+                          )}
+                          {product.specs?.style && (
+                            <tr className="border-b" style={{ borderColor: "var(--color-border)" }}>
+                              <td className="py-3.5 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Design Style</td>
+                              <td className="py-3.5 px-4 font-medium">{product.specs.style}</td>
+                            </tr>
+                          )}
+                          {product.specs?.finish && (
+                            <tr className="border-b" style={{ borderColor: "var(--color-border)" }}>
+                              <td className="py-3.5 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Finish / Polish</td>
+                              <td className="py-3.5 px-4 font-medium">{product.specs.finish}</td>
+                            </tr>
+                          )}
+                          {product.specs?.assemblyRequired && (
+                            <tr className="border-b" style={{ borderColor: "var(--color-border)" }}>
+                              <td className="py-3.5 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Assembly</td>
+                              <td className="py-3.5 px-4 font-medium">
+                                {product.specs.assemblyRequired}
+                                {product.specs.assemblyTime ? ` (${product.specs.assemblyTime})` : ""}
+                              </td>
+                            </tr>
+                          )}
+                          {product.specs?.careInstructions && (
+                            <tr className="border-b" style={{ borderColor: "var(--color-border)" }}>
+                              <td className="py-3.5 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Care Instructions</td>
+                              <td className="py-3.5 px-4 font-medium">{product.specs.careInstructions}</td>
                             </tr>
                           )}
                           <tr style={{ borderColor: "var(--color-border)" }}>
-                            <td className="py-3 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Warranty</td>
-                            <td className="py-3 px-4 font-medium">{product.specs?.warranty || "1 Year Manufacturer Warranty"}</td>
+                            <td className="py-3.5 px-4 font-semibold" style={{ color: "var(--color-muted)", background: "var(--color-surface-alt)" }}>Warranty</td>
+                            <td className="py-3.5 px-4 font-medium">{product.specs?.warranty || "3-Year Structural Frame Warranty"}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -472,7 +593,7 @@ function ProductDetail() {
                     <div className="space-y-4 leading-relaxed" style={{ color: "var(--color-body)" }}>
                       <p className="text-base font-medium">{product.description}</p>
                       <p className="text-sm" style={{ color: "var(--color-muted)" }}>
-                        Engineered to deliver exceptional performance and reliability. Manufactured with top-tier components and tested under rigorous standards to ensure smooth everyday use.
+                        Crafted with hand-selected materials, artisanal joinery, and premium protective finishes. Every piece is built to endure everyday living while elevating your home with timeless warmth and comfort.
                       </p>
                     </div>
                   )}

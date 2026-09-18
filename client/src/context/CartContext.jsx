@@ -10,17 +10,27 @@ import {
 } from "../services/cartService";
 
 const CartContext = createContext(null);
-const GUEST_CART_KEY = "electromart_guest_cart";
+const GUEST_CART_KEY = "furniva_guest_cart";
+const LEGACY_CART_KEY = "electromart_guest_cart"; // Legacy compatibility migration key
 
 function normalizeCartItem(item) {
   const product = item.product || {};
   const id = product._id || product.id || item.id;
+  const image =
+    product.images?.[0]?.url ||
+    (typeof product.images?.[0] === "string" ? product.images[0] : null) ||
+    (typeof product.image === "string" ? product.image : product.image?.url) ||
+    item.image ||
+    "";
 
   return {
     id,
     name: product.name || item.name || "",
     price: item.price ?? product.price ?? 0,
     quantity: item.quantity || 0,
+    image,
+    images: product.images || item.images || [],
+    category: product.category || item.category || "",
   };
 }
 
@@ -35,7 +45,9 @@ function mapCartItemsForSync(items) {
 function CartProvider({ children }) {
   const { user } = useAuth();
   const [cart, setCart] = useState(() => {
-    const storedCart = localStorage.getItem(GUEST_CART_KEY);
+    const storedCart =
+      localStorage.getItem(GUEST_CART_KEY) ||
+      localStorage.getItem(LEGACY_CART_KEY);
     return storedCart ? JSON.parse(storedCart) : [];
   });
   const [loading, setLoading] = useState(false);
@@ -43,6 +55,7 @@ function CartProvider({ children }) {
   useEffect(() => {
     if (!user) {
       localStorage.setItem(GUEST_CART_KEY, JSON.stringify(cart));
+      localStorage.removeItem(LEGACY_CART_KEY);
     }
   }, [cart, user]);
 
@@ -76,6 +89,7 @@ function CartProvider({ children }) {
           const syncedItems = transformCartResponse(syncedCart);
           setCart(syncedItems);
           localStorage.removeItem(GUEST_CART_KEY);
+          localStorage.removeItem(LEGACY_CART_KEY);
         } else {
           setCart(remoteItems);
         }
@@ -115,6 +129,13 @@ function CartProvider({ children }) {
           name: product.name,
           price: product.price,
           quantity,
+          image:
+            product.images?.[0]?.url ||
+            (typeof product.images?.[0] === "string" ? product.images[0] : null) ||
+            (typeof product.image === "string" ? product.image : product.image?.url) ||
+            "",
+          images: product.images || [],
+          category: product.category || "",
         },
       ];
     });

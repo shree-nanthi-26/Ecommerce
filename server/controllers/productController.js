@@ -1,11 +1,16 @@
 import Product from "../models/Product.js";
+import redis from "../config/redis.js";
 import cloudinary from "../config/cloudinary.js";
+import { logAudit } from "../services/auditService.js";
+
+const PRODUCT_CACHE_TTL = 300; // 5 minutes
 
 export async function getAllProducts(req, res, next) {
   try {
     const {
       category, minPrice, maxPrice, sort,
-      brand, ram, storage, screenSize, processor, os,
+      brand, material, color, roomType, seatingCapacity, style, woodType,
+      tvSizeCompatibility,
       minRating, badge, q,
     } = req.query;
     const filter = {};
@@ -20,13 +25,15 @@ export async function getAllProducts(req, res, next) {
       if (maxPrice) filter.price.$lte = Number(maxPrice);
     }
 
-    // New filters
+    // Furniture spec filters
     if (brand) filter.brand = brand;
-    if (ram) filter["specs.ram"] = ram;
-    if (storage) filter["specs.storage"] = storage;
-    if (screenSize) filter["specs.screenSize"] = screenSize;
-    if (processor) filter["specs.processor"] = processor;
-    if (os) filter["specs.os"] = os;
+    if (material) filter["specs.material"] = material;
+    if (color) filter["specs.color"] = color;
+    if (roomType) filter["specs.roomType"] = roomType;
+    if (seatingCapacity) filter["specs.seatingCapacity"] = seatingCapacity;
+    if (style) filter["specs.style"] = style;
+    if (woodType) filter["specs.woodType"] = woodType;
+    if (tvSizeCompatibility) filter["specs.tvSizeCompatibility"] = tvSizeCompatibility;
     if (minRating) filter.rating = { $gte: Number(minRating) };
     if (badge) filter.badge = badge;
 
@@ -36,26 +43,38 @@ export async function getAllProducts(req, res, next) {
       filter.$or = [{ name: regex }, { category: regex }];
     }
 
-    let query = Product.find(filter);
+    // Pagination
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.max(1, Math.min(100, parseInt(req.query.limit, 10) || 12));
+    const skip = (page - 1) * limit;
 
+    let sortOption = {};
     if (sort) {
       switch (sort) {
         case "price_asc":
-          query = query.sort({ price: 1 });
+          sortOption = { price: 1 };
           break;
         case "price_desc":
-          query = query.sort({ price: -1 });
+          sortOption = { price: -1 };
           break;
         case "rating":
-          query = query.sort({ rating: -1 });
+          sortOption = { rating: -1 };
+          break;
+        case "newest":
+          sortOption = { createdAt: -1 };
           break;
         default:
           break;
       }
     }
 
-    const products = await query;
-    res.json(products);
+    const [products, total] = await Promise.all([
+      Product.find(filter).sort(sortOption).skip(skip).limit(limit),
+      Product.countDocuments(filter),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+    res.json({ products, page, limit, total, totalPages });
   } catch (error) {
     next(error);
   }
@@ -63,7 +82,18 @@ export async function getAllProducts(req, res, next) {
 
 export async function getProductById(req, res, next) {
   try {
-    const product = await Product.findById(req.params.id);
+    const productId = req.params.id;
+    const cacheKey = `product:${productId}`;
+
+    // Try Redis cache first
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      res.set("X-Cache", "HIT");
+      return res.json(JSON.parse(cached));
+    }
+
+    // Cache miss — fetch from MongoDB
+    const product = await Product.findById(productId);
 
     if (!product) {
       const err = new Error("Product not found");
@@ -71,6 +101,10 @@ export async function getProductById(req, res, next) {
       throw err;
     }
 
+    // Store in Redis with TTL
+    await redis.setex(cacheKey, PRODUCT_CACHE_TTL, JSON.stringify(product));
+
+    res.set("X-Cache", "MISS");
     res.json(product);
   } catch (error) {
     next(error);
@@ -81,6 +115,14 @@ export async function createProduct(req, res, next) {
   try {
     const newProduct = new Product(req.body);
     const createdProduct = await newProduct.save();
+
+    await logAudit(req, {
+      action: "CREATE_PRODUCT",
+      target: { type: "Product", id: createdProduct._id.toString() },
+      oldValue: null,
+      newValue: createdProduct
+    });
+
     res.status(201).json(createdProduct);
   } catch (error) {
     next(error);
@@ -96,12 +138,24 @@ export async function updateProduct(req, res, next) {
       throw new Error("Product not found");
     }
 
+    const oldProductData = JSON.parse(JSON.stringify(product));
     const updates = req.body;
     Object.keys(updates).forEach((key) => {
       product[key] = updates[key];
     });
 
     const updatedProduct = await product.save();
+
+    // Invalidate Redis cache
+    await redis.del(`product:${product._id}`);
+
+    await logAudit(req, {
+      action: "UPDATE_PRODUCT",
+      target: { type: "Product", id: product._id.toString() },
+      oldValue: oldProductData,
+      newValue: updatedProduct
+    });
+
     res.json(updatedProduct);
   } catch (error) {
     next(error);
@@ -117,6 +171,8 @@ export async function deleteProduct(req, res, next) {
       throw new Error("Product not found");
     }
 
+    const oldProductData = JSON.parse(JSON.stringify(product));
+
     if (product.images && product.images.length > 0) {
       for (const image of product.images) {
         if (image.publicId) {
@@ -126,6 +182,17 @@ export async function deleteProduct(req, res, next) {
     }
 
     await product.deleteOne();
+
+    // Invalidate Redis cache
+    await redis.del(`product:${product._id}`);
+
+    await logAudit(req, {
+      action: "DELETE_PRODUCT",
+      target: { type: "Product", id: product._id.toString() },
+      oldValue: oldProductData,
+      newValue: null
+    });
+
     res.json({ message: "Product deleted" });
   } catch (error) {
     next(error);

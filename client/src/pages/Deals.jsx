@@ -6,7 +6,7 @@ import ProductCard from "../components/product/ProductCard";
 import SkeletonCard from "../components/product/SkeletonCard";
 import QuickViewModal from "../components/product/QuickViewModal";
 import { getAllProducts } from "../services/productService";
-import { FiZap, FiClock } from "react-icons/fi";
+import { FiClock, FiTag } from "react-icons/fi";
 
 function CountdownTimer() {
   const [timeLeft, setTimeLeft] = useState({ hours: 14, minutes: 32, seconds: 45 });
@@ -28,7 +28,7 @@ function CountdownTimer() {
 
   return (
     <div
-      className="inline-flex items-center gap-3 rounded-2xl px-5 py-3 border shadow-lg"
+      className="inline-flex items-center gap-3 rounded-2xl px-5 py-3 border shadow-sm"
       style={{
         background: "var(--color-surface)",
         borderColor: "var(--color-border)",
@@ -36,7 +36,7 @@ function CountdownTimer() {
     >
       <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: "var(--color-accent)" }}>
         <FiClock size={18} />
-        <span>Deals End In:</span>
+        <span>Offer Ends In:</span>
       </div>
       <div className="flex items-center gap-1.5 font-mono text-base font-bold">
         <span className="rounded-lg px-2.5 py-1" style={{ background: "var(--color-surface-alt)" }}>
@@ -66,9 +66,10 @@ function Deals() {
       try {
         setLoading(true);
         const data = await getAllProducts({ badge: "SALE" });
-        setProducts(data);
+        const productList = Array.isArray(data) ? data : (data?.products || []);
+        setProducts(productList);
       } catch (err) {
-        setError("Failed to load special deals.");
+        setError("Failed to load furniture offers.");
       } finally {
         setLoading(false);
       }
@@ -79,10 +80,10 @@ function Deals() {
   return (
     <>
       <Helmet>
-        <title>Exclusive Deals & Offers – ElectroMart</title>
+        <title>Exclusive Furniture Deals & Offers – Furniva</title>
         <meta
           name="description"
-          content="Grab incredible discounts on top electronics. Limited-time flash sales with countdown timer on laptops, smartphones, audio gear, and more!"
+          content="Discover handcrafted wooden furniture, luxury sofas, dining sets, and bedroom suites at exclusive limited-time prices."
         />
       </Helmet>
 
@@ -102,11 +103,11 @@ function Deals() {
                   color: "var(--color-accent)",
                 }}
               >
-                <FiZap /> Limited Time Flash Sale
+                <FiTag /> Limited Time Studio Sale
               </div>
-              <h1 className="text-4xl font-bold">Hot Tech Deals</h1>
+              <h1 className="text-4xl font-serif font-bold tracking-tight">Curated Furniture Offers</h1>
               <p className="mt-2 text-base" style={{ color: "var(--color-muted)" }}>
-                Up to 40% OFF on flagship smartphones, laptops & accessories
+                Save up to 40% on handcrafted solid wood furniture, luxury sofas & dining suites
               </p>
             </div>
 
@@ -132,7 +133,7 @@ function Deals() {
                   className="col-span-full text-center text-lg py-16"
                   style={{ color: "var(--color-muted)" }}
                 >
-                  No active sale deals right now. Check back soon!
+                  No active furniture offers right now. Check back soon for our next seasonal curation!
                 </div>
               )
               : products.map((product) => {
@@ -143,7 +144,7 @@ function Deals() {
                   return (
                     <div key={product._id || product.id} className="relative">
                       {/* Discount Badge */}
-                      <span className="absolute top-3 left-3 z-10 rounded-full bg-emerald-500 px-2.5 py-1 text-xs font-extrabold text-white shadow-md">
+                      <span className="absolute top-3 left-3 z-10 rounded-full bg-amber-700 px-2.5 py-1 text-xs font-bold text-white shadow-md">
                         {discountPct}% OFF
                       </span>
                       <ProductCard product={product} onQuickView={setQuickViewProduct} />

@@ -11,11 +11,12 @@ import {
 import { Link } from "react-router-dom";
 
 const shopLinks = [
-  { label: "Mobiles", href: "/products?category=Mobiles" },
-  { label: "Laptops", href: "/products?category=Laptops" },
-  { label: "Audio", href: "/products?category=Audio" },
-  { label: "Wearables", href: "/products?category=Wearables" },
-  { label: "Cameras", href: "/products?category=Cameras" },
+  { label: "Sofas & Seating", href: "/products?category=Sofas%20%26%20Seating" },
+  { label: "Beds & Bedroom", href: "/products?category=Beds%20%26%20Bedroom" },
+  { label: "Dining Furniture", href: "/products?category=Dining%20Furniture" },
+  { label: "Living Room", href: "/products?category=Living%20Room" },
+  { label: "Tables & Desks", href: "/products?category=Tables%20%26%20Desks" },
+  { label: "Storage & Cabinets", href: "/products?category=Storage%20%26%20Cabinets" },
 ];
 const companyLinks = [
   { label: "About Us", href: "#" },
@@ -95,15 +96,16 @@ function Footer() {
 
           {/* Brand */}
           <div>
-            <h3 className="text-2xl font-bold" style={{ color: "#fff" }}>
-              ElectroMart
+            <h3 className="text-2xl font-bold tracking-tight" style={{ color: "#fff" }}>
+              Furniva
             </h3>
-            <p className="mt-2 font-medium" style={{ color: "var(--color-accent)" }}>
-              Future Electronics
+            <p className="mt-2 font-medium text-sm" style={{ color: "var(--color-accent)" }}>
+              Designed for Living. Built for Comfort.
             </p>
-            <p className="mt-4 text-sm leading-7">
-              Discover premium gadgets, smart devices, and immersive tech
-              experiences crafted for modern living.
+            <p className="mt-4 text-sm leading-7" style={{ color: "var(--color-chrome-text)" }}>
+              Thoughtfully designed furniture for beautiful, comfortable homes.
+              Crafted with sustainably sourced hardwoods, artisan upholstery,
+              and timeless silhouettes.
             </p>
 
             <div className="mt-6 flex gap-3">
@@ -197,10 +199,10 @@ function Footer() {
       {/* Bottom bar */}
       <div style={{ borderTop: "1px solid var(--color-chrome-border)" }} className="py-6">
         <div className="max-w-[1500px] mx-auto px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm">
-          <p>© 2026 ElectroMart. All rights reserved.</p>
+          <p>© 2026 Furniva. All rights reserved.</p>
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <span className="flex items-center gap-2">
-              <FiMail style={{ color: "var(--color-accent)" }} /> hello@electromart.com
+              <FiMail style={{ color: "var(--color-accent)" }} /> hello@furniva.com
             </span>
             <span className="flex items-center gap-2">
               <FiPhone style={{ color: "var(--color-accent)" }} /> +91 98765 43210

@@ -1,60 +1,60 @@
 /* ═══════════════════════════════════════════════════════════════
-   ElectroMart — Design System
+   Furniva — Modern Furniture Design System
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  /* Primary palette */
-  --color-primary: #2563EB;
-  --color-primary-hover: #1D4ED8;
-  --color-primary-light: #3B82F6;
-  --color-secondary: #0F172A;
-  --color-accent: #10B981;
-  --color-accent-hover: #059669;
-  --color-accent-light: rgba(16, 185, 129, 0.15);
+  /* Primary palette — Warm Walnut & Terracotta */
+  --color-primary: #8B5E3C;
+  --color-primary-hover: #724C30;
+  --color-primary-light: #A67551;
+  --color-secondary: #2C2723;
+  --color-accent: #8B5E3C;
+  --color-accent-hover: #724C30;
+  --color-accent-light: rgba(139, 94, 60, 0.12);
 
-  /* Backgrounds and surfaces */
-  --color-bg: #F8FAFC;
+  /* Backgrounds and surfaces — Warm Ivory, Cream, Soft Beige */
+  --color-bg: #F7F4EF;
   --color-surface: #FFFFFF;
-  --color-surface-hover: #F1F5F9;
-  --color-surface-alt: #F0F4F8;
+  --color-surface-hover: #F2ECE3;
+  --color-surface-alt: #EFE9DF;
 
-  /* Text colors */
-  --color-heading: #111827;
-  --color-body: #475569;
-  --color-muted: #94A3B8;
+  /* Text colors — Deep Charcoal & Warm Taupe */
+  --color-heading: #2C2723;
+  --color-body: #5E574F;
+  --color-muted: #8C827A;
   --color-link: var(--color-primary);
 
-  /* Border and shadows */
-  --color-border: #E2E8F0;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-  --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
-  --shadow-xl: 0 20px 50px rgba(0,0,0,0.15);
+  /* Border and shadows — Warm Linen & Soft Shadows */
+  --color-border: #DED7CC;
+  --shadow-sm: 0 1px 3px rgba(44, 39, 35, 0.06);
+  --shadow-md: 0 4px 14px rgba(44, 39, 35, 0.08);
+  --shadow-lg: 0 10px 30px rgba(44, 39, 35, 0.10);
+  --shadow-xl: 0 20px 50px rgba(44, 39, 35, 0.13);
 
   /* Status colors */
-  --color-success: #22C55E;
-  --color-warning: #FACC15;
-  --color-danger: #EF4444;
+  --color-success: #52734D;
+  --color-warning: #D97706;
+  --color-danger: #B91C1C;
 
   /* Specific UI colors */
-  --color-wishlist: #EF4444;
-  --color-rating: #FACC15;
+  --color-wishlist: #B91C1C;
+  --color-rating: #D97706;
   --color-price: var(--color-heading);
   --color-old-price: var(--color-muted);
-  --color-badge-new: #22C55E;
-  --color-badge-sale: #EF4444;
+  --color-badge-new: #52734D;
+  --color-badge-sale: #B91C1C;
 
-  /* Navbar / footer dark chrome */
-  --color-chrome: #0F172A;
-  --color-chrome-border: #1E293B;
-  --color-chrome-text: #CBD5E1;
-  --color-chrome-text-hover: var(--color-accent);
+  /* Navbar / footer warm dark espresso chrome */
+  --color-chrome: #211D1A;
+  --color-chrome-border: #352F2B;
+  --color-chrome-text: #E7E1D8;
+  --color-chrome-text-hover: #D9A87E;
 
   /* Radii */
   --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
   --radius-full: 9999px;
 
   /* Transitions */
@@ -63,25 +63,29 @@
   --transition-slow: all 0.4s ease-in-out;
 
   /* Typography */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* ─── Dark Mode ────────────────────────────────────────────── */
 :root[data-theme="dark"] {
-  --color-bg: #0F1115;
-  --color-surface: #1A1D24;
-  --color-surface-hover: #22262E;
-  --color-surface-alt: #151820;
-  --color-heading: #F3F4F6;
-  --color-body: #CBD5E1;
-  --color-muted: #64748B;
-  --color-border: #2D333D;
-  --color-chrome: #0B0D11;
-  --color-chrome-border: #1E2230;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.35);
-  --shadow-lg: 0 10px 30px rgba(0,0,0,0.4);
-  --shadow-xl: 0 20px 50px rgba(0,0,0,0.5);
+  --color-bg: #181513;
+  --color-surface: #221E1B;
+  --color-surface-hover: #2C2723;
+  --color-surface-alt: #1C1916;
+  --color-heading: #F6F3EE;
+  --color-body: #D2C9BF;
+  --color-muted: #938A80;
+  --color-border: #38322C;
+  --color-chrome: #141210;
+  --color-chrome-border: #2A2521;
+  --color-chrome-text: #E5DFD6;
+  --color-accent: #C89467;
+  --color-accent-hover: #D9A87E;
+  --color-accent-light: rgba(200, 148, 103, 0.15);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.35);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,0.45);
+  --shadow-xl: 0 20px 50px rgba(0,0,0,0.55);
 }
 
 /* ─── Global Defaults ──────────────────────────────────────── */
@@ -157,11 +161,11 @@ img {
   font-size: 0.875rem;
   letter-spacing: 0.01em;
   transition: var(--transition-base);
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+  box-shadow: 0 2px 10px rgba(139, 94, 60, 0.22);
 }
 .btn-primary:hover {
   background: var(--color-accent-hover);
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 4px 18px rgba(139, 94, 60, 0.32);
   transform: translateY(-1px);
 }
 .btn-primary:active {
@@ -186,7 +190,7 @@ img {
 .btn-secondary:hover {
   background: var(--color-accent);
   color: #fff;
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.25);
+  box-shadow: 0 4px 16px rgba(139, 94, 60, 0.22);
   transform: translateY(-1px);
 }
 .btn-secondary:active {
@@ -421,19 +425,19 @@ img {
   position: absolute;
   top: -10rem;
   left: -10rem;
-  width: 32rem;
-  height: 32rem;
-  background: rgba(16, 185, 129, 0.15);
+  width: 34rem;
+  height: 34rem;
+  background: rgba(139, 94, 60, 0.15);
   border-radius: var(--radius-full);
   filter: blur(120px);
 }
 .hero__glow-2 {
   position: absolute;
-  top: 10rem;
-  right: 0;
-  width: 26rem;
-  height: 26rem;
-  background: rgba(37, 99, 235, 0.1);
+  top: 8rem;
+  right: -5rem;
+  width: 28rem;
+  height: 28rem;
+  background: rgba(217, 168, 126, 0.10);
   border-radius: var(--radius-full);
   filter: blur(100px);
 }

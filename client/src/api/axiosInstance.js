@@ -7,7 +7,9 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use((config) => {
-  const storedUser = localStorage.getItem("electromart_user");
+  const storedUser =
+    localStorage.getItem("furniva_user") ||
+    localStorage.getItem("electromart_user"); // Legacy compatibility fallback key
   if (storedUser) {
     const user = JSON.parse(storedUser);
     if (user.token) {

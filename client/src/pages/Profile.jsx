@@ -77,10 +77,10 @@ function Profile() {
   return (
     <>
       <Helmet>
-        <title>My Profile – ElectroMart</title>
+        <title>My Profile – Furniva</title>
         <meta
           name="description"
-          content="Manage your ElectroMart account, view order history, and update your profile details."
+          content="Manage your Furniva account, view furniture order history, and update your profile details."
         />
       </Helmet>
 

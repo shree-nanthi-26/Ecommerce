@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { createOrder } from "../services/orderService";
 import { createPaymentOrder, verifyPayment } from "../services/paymentService";
+import { FiShield, FiTruck } from "react-icons/fi";
 
 function Checkout() {
   const { cart, cartTotal, clearCart } = useCart();
@@ -44,7 +46,7 @@ function Checkout() {
     setError("");
 
     if (!isFormValid) {
-      setError("Please complete all required fields.");
+      setError("Please complete all required shipping fields.");
       return;
     }
 
@@ -100,8 +102,8 @@ function Checkout() {
         key: paymentOrder.keyId,
         amount: paymentOrder.amount,
         currency: paymentOrder.currency,
-        name: "ElectroMart",
-        description: "Complete your payment",
+        name: "Furniva",
+        description: "Complete your Furniva furniture purchase",
         order_id: paymentOrder.orderId,
         handler: async function (response) {
           try {
@@ -129,7 +131,7 @@ function Checkout() {
           email: user?.email || "",
         },
         theme: {
-          color: "#10B981",
+          color: "#8B5E3C",
         },
       };
 
@@ -143,37 +145,69 @@ function Checkout() {
 
   return (
     <>
+      <Helmet>
+        <title>Secure Checkout – Furniva</title>
+      </Helmet>
       <Navbar />
-      <main className="min-h-screen bg-[#0F1115] px-6 py-14 text-white">
+      <main
+        className="min-h-screen px-4 sm:px-8 py-14"
+        style={{ background: "var(--color-bg)", color: "var(--color-heading)" }}
+      >
         <div className="mx-auto max-w-[1500px]">
           <div className="mb-10">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-green-400">
-              Checkout
+            <p
+              className="text-sm font-semibold uppercase tracking-[0.3em]"
+              style={{ color: "var(--color-accent)" }}
+            >
+              Secure Order
             </p>
-            <h1 className="mt-2 text-4xl font-bold">Shipping & Payment</h1>
+            <h1 className="mt-2 text-4xl font-serif font-bold tracking-tight">
+              Shipping & Payment
+            </h1>
+            <p className="mt-1 text-sm" style={{ color: "var(--color-muted)" }}>
+              All orders include free white-glove delivery and professional in-home assembly.
+            </p>
           </div>
 
           <div className="grid gap-8 lg:grid-cols-3">
             <form
-              className="lg:col-span-2 rounded-3xl border border-[#2D333D] bg-[#1D222C] p-8"
+              className="lg:col-span-2 rounded-3xl p-8 border shadow-sm"
+              style={{
+                background: "var(--color-surface)",
+                borderColor: "var(--color-border)",
+              }}
               onSubmit={handleSubmit}
             >
+              <h2 className="text-xl font-bold mb-6">Delivery Address</h2>
+
               <div className="grid gap-5 sm:grid-cols-2">
                 <label className="block">
-                  <span className="text-sm font-semibold text-[#B8BEC9]">Full Name</span>
+                  <span className="text-sm font-semibold" style={{ color: "var(--color-muted)" }}>Full Name *</span>
                   <input
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="mt-2 w-full rounded-2xl border border-[#2D333D] bg-[#1D222C] px-4 py-3 text-white outline-none"
+                    className="mt-2 w-full rounded-2xl px-4 py-3 outline-none border focus:ring-2 focus:ring-[var(--color-accent)]"
+                    style={{
+                      background: "var(--color-surface-alt)",
+                      borderColor: "var(--color-border)",
+                      color: "var(--color-heading)",
+                    }}
+                    placeholder="Enter your full name"
                     required
                   />
                 </label>
                 <label className="block">
-                  <span className="text-sm font-semibold text-[#B8BEC9]">Phone</span>
+                  <span className="text-sm font-semibold" style={{ color: "var(--color-muted)" }}>Phone Number *</span>
                   <input
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="mt-2 w-full rounded-2xl border border-[#2D333D] bg-[#1D222C] px-4 py-3 text-white outline-none"
+                    className="mt-2 w-full rounded-2xl px-4 py-3 outline-none border focus:ring-2 focus:ring-[var(--color-accent)]"
+                    style={{
+                      background: "var(--color-surface-alt)",
+                      borderColor: "var(--color-border)",
+                      color: "var(--color-heading)",
+                    }}
+                    placeholder="10-digit mobile number"
                     required
                   />
                 </label>
@@ -181,83 +215,151 @@ function Checkout() {
 
               <div className="mt-5 space-y-5">
                 <label className="block">
-                  <span className="text-sm font-semibold text-[#B8BEC9]">Address Line 1</span>
+                  <span className="text-sm font-semibold" style={{ color: "var(--color-muted)" }}>Flat, House no., Apartment *</span>
                   <input
                     value={addressLine1}
                     onChange={(e) => setAddressLine1(e.target.value)}
-                    className="mt-2 w-full rounded-2xl border border-[#2D333D] bg-[#1D222C] px-4 py-3 text-white outline-none"
+                    className="mt-2 w-full rounded-2xl px-4 py-3 outline-none border focus:ring-2 focus:ring-[var(--color-accent)]"
+                    style={{
+                      background: "var(--color-surface-alt)",
+                      borderColor: "var(--color-border)",
+                      color: "var(--color-heading)",
+                    }}
+                    placeholder="House / Apartment / Building details"
                     required
                   />
                 </label>
 
                 <label className="block">
-                  <span className="text-sm font-semibold text-[#B8BEC9]">Address Line 2</span>
+                  <span className="text-sm font-semibold" style={{ color: "var(--color-muted)" }}>Area, Street, Landmark</span>
                   <input
                     value={addressLine2}
                     onChange={(e) => setAddressLine2(e.target.value)}
-                    className="mt-2 w-full rounded-2xl border border-[#2D333D] bg-[#1D222C] px-4 py-3 text-white outline-none"
+                    className="mt-2 w-full rounded-2xl px-4 py-3 outline-none border focus:ring-2 focus:ring-[var(--color-accent)]"
+                    style={{
+                      background: "var(--color-surface-alt)",
+                      borderColor: "var(--color-border)",
+                      color: "var(--color-heading)",
+                    }}
+                    placeholder="Area or nearby landmark"
                   />
                 </label>
 
                 <div className="grid gap-5 sm:grid-cols-3">
                   <label className="block">
-                    <span className="text-sm font-semibold text-[#B8BEC9]">City</span>
+                    <span className="text-sm font-semibold" style={{ color: "var(--color-muted)" }}>City *</span>
                     <input
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className="mt-2 w-full rounded-2xl border border-[#2D333D] bg-[#1D222C] px-4 py-3 text-white outline-none"
+                      className="mt-2 w-full rounded-2xl px-4 py-3 outline-none border focus:ring-2 focus:ring-[var(--color-accent)]"
+                      style={{
+                        background: "var(--color-surface-alt)",
+                        borderColor: "var(--color-border)",
+                        color: "var(--color-heading)",
+                      }}
+                      placeholder="e.g. Bangalore"
                       required
                     />
                   </label>
                   <label className="block">
-                    <span className="text-sm font-semibold text-[#B8BEC9]">State</span>
+                    <span className="text-sm font-semibold" style={{ color: "var(--color-muted)" }}>State *</span>
                     <input
                       value={stateValue}
                       onChange={(e) => setStateValue(e.target.value)}
-                      className="mt-2 w-full rounded-2xl border border-[#2D333D] bg-[#1D222C] px-4 py-3 text-white outline-none"
+                      className="mt-2 w-full rounded-2xl px-4 py-3 outline-none border focus:ring-2 focus:ring-[var(--color-accent)]"
+                      style={{
+                        background: "var(--color-surface-alt)",
+                        borderColor: "var(--color-border)",
+                        color: "var(--color-heading)",
+                      }}
+                      placeholder="e.g. Karnataka"
                       required
                     />
                   </label>
                   <label className="block">
-                    <span className="text-sm font-semibold text-[#B8BEC9]">Pincode</span>
+                    <span className="text-sm font-semibold" style={{ color: "var(--color-muted)" }}>Pincode *</span>
                     <input
                       value={pincode}
                       onChange={(e) => setPincode(e.target.value)}
-                      className="mt-2 w-full rounded-2xl border border-[#2D333D] bg-[#1D222C] px-4 py-3 text-white outline-none"
+                      className="mt-2 w-full rounded-2xl px-4 py-3 outline-none border focus:ring-2 focus:ring-[var(--color-accent)]"
+                      style={{
+                        background: "var(--color-surface-alt)",
+                        borderColor: "var(--color-border)",
+                        color: "var(--color-heading)",
+                      }}
+                      placeholder="6-digit pincode"
                       required
                     />
                   </label>
                 </div>
               </div>
 
-              <div className="mt-8 rounded-3xl border border-[#2D333D] bg-[#0F1115] p-6">
-                <h2 className="text-xl font-semibold">Payment Method</h2>
+              <div
+                className="mt-8 rounded-2xl p-6 border"
+                style={{
+                  background: "var(--color-surface-alt)",
+                  borderColor: "var(--color-border)",
+                }}
+              >
+                <h3 className="text-lg font-bold">Select Payment Option</h3>
                 <div className="mt-4 space-y-3">
-                  <label className="flex items-center gap-3 rounded-2xl border border-[#2D333D] bg-[#1D222C] px-4 py-3">
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="COD"
-                      checked={paymentMethod === "COD"}
-                      onChange={() => setPaymentMethod("COD")}
-                    />
-                    <span>Cash on Delivery</span>
-                  </label>
-                  <label className="flex items-center gap-3 rounded-2xl border border-[#2D333D] bg-[#1D222C] px-4 py-3">
+                  <label
+                    className="flex items-center gap-3 rounded-xl p-4 border cursor-pointer transition hover:border-[var(--color-accent)]"
+                    style={{
+                      background: "var(--color-surface)",
+                      borderColor: paymentMethod === "ONLINE" ? "var(--color-accent)" : "var(--color-border)",
+                    }}
+                  >
                     <input
                       type="radio"
                       name="payment"
                       value="ONLINE"
                       checked={paymentMethod === "ONLINE"}
                       onChange={() => setPaymentMethod("ONLINE")}
+                      className="accent-[#8B5E3C]"
                     />
-                    <span>Online Payment</span>
+                    <div className="flex-1">
+                      <span className="font-semibold text-sm">Online Payment (UPI, Cards, Net Banking)</span>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--color-muted)" }}>
+                        Safe and instant payment powered by Razorpay.
+                      </p>
+                    </div>
+                  </label>
+
+                  <label
+                    className="flex items-center gap-3 rounded-xl p-4 border cursor-pointer transition hover:border-[var(--color-accent)]"
+                    style={{
+                      background: "var(--color-surface)",
+                      borderColor: paymentMethod === "COD" ? "var(--color-accent)" : "var(--color-border)",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="COD"
+                      checked={paymentMethod === "COD"}
+                      onChange={() => setPaymentMethod("COD")}
+                      className="accent-[#8B5E3C]"
+                    />
+                    <div className="flex-1">
+                      <span className="font-semibold text-sm">Cash on Delivery</span>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--color-muted)" }}>
+                        Pay cash or UPI upon delivery and inspection.
+                      </p>
+                    </div>
                   </label>
                 </div>
               </div>
 
               {error && (
-                <div className="mt-6 rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                <div
+                  className="mt-6 rounded-2xl p-4 text-sm font-medium border"
+                  style={{
+                    background: "rgba(239, 68, 68, 0.1)",
+                    borderColor: "rgba(239, 68, 68, 0.2)",
+                    color: "var(--color-danger)",
+                  }}
+                >
                   {error}
                 </div>
               )}
@@ -265,42 +367,69 @@ function Checkout() {
               <button
                 type="submit"
                 disabled={!isFormValid || isSubmitting}
-                className="mt-6 w-full rounded-2xl bg-green-500 px-4 py-3 text-white font-semibold transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-6 w-full rounded-2xl px-6 py-4 font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-50 shadow-md"
+                style={{
+                  background: "var(--color-accent)",
+                }}
               >
-                {isSubmitting ? "Placing order..." : "Place Order"}
+                {isSubmitting ? "Processing Order..." : `Place Order (₹${totalAmount.toLocaleString("en-IN")})`}
               </button>
+
+              <div className="mt-4 flex items-center justify-center gap-6 text-xs" style={{ color: "var(--color-muted)" }}>
+                <span className="flex items-center gap-1.5"><FiShield /> 256-Bit Encrypted Checkout</span>
+                <span className="flex items-center gap-1.5"><FiTruck /> Safe Furniture Transit</span>
+              </div>
             </form>
 
-            <aside className="rounded-3xl border border-[#2D333D] bg-[#1D222C] p-8 lg:sticky lg:top-24">
-              <h2 className="text-2xl font-semibold">Order Summary</h2>
-              <div className="mt-6 space-y-4">
+            <aside
+              className="rounded-3xl p-8 border lg:sticky lg:top-24 h-fit shadow-sm"
+              style={{
+                background: "var(--color-surface)",
+                borderColor: "var(--color-border)",
+              }}
+            >
+              <h2 className="text-xl font-serif font-bold">Order Summary</h2>
+              <div className="mt-6 space-y-4 max-h-72 overflow-y-auto pr-1">
                 {cart.map((item) => (
-                  <div key={item.id} className="rounded-2xl border border-[#2D333D] bg-[#0F1115] p-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <p className="font-semibold text-white">{item.name}</p>
-                        <p className="mt-1 text-sm text-[#B8BEC9]">Qty: {item.quantity}</p>
-                      </div>
-                      <p className="font-semibold text-white">₹{(item.price * item.quantity).toLocaleString("en-IN")}</p>
+                  <div
+                    key={item.id}
+                    className="rounded-xl p-3 border flex items-center justify-between gap-4 text-sm"
+                    style={{
+                      background: "var(--color-surface-alt)",
+                      borderColor: "var(--color-border)",
+                    }}
+                  >
+                    <div className="truncate pr-2">
+                      <p className="font-semibold truncate">{item.name}</p>
+                      <p className="text-xs" style={{ color: "var(--color-muted)" }}>Qty: {item.quantity}</p>
                     </div>
+                    <p className="font-bold shrink-0">₹{(item.price * item.quantity).toLocaleString("en-IN")}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-6 space-y-3 rounded-2xl border border-[#2D333D] bg-[#0F1115] p-4 text-sm text-[#B8BEC9]">
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span className="text-white">₹{cartTotal.toLocaleString("en-IN")}</span>
+              <div
+                className="mt-6 space-y-3 rounded-2xl p-4 text-sm border"
+                style={{
+                  background: "var(--color-surface-alt)",
+                  borderColor: "var(--color-border)",
+                }}
+              >
+                <div className="flex justify-between" style={{ color: "var(--color-muted)" }}>
+                  <span>Furniture Total</span>
+                  <span className="font-semibold" style={{ color: "var(--color-heading)" }}>₹{cartTotal.toLocaleString("en-IN")}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Delivery Fee</span>
-                  <span className="text-white">{deliveryFee === 0 ? "Free" : `₹${deliveryFee.toLocaleString("en-IN")}`}</span>
+                <div className="flex justify-between" style={{ color: "var(--color-muted)" }}>
+                  <span>White-Glove Delivery</span>
+                  <span className="font-semibold text-emerald-600">{deliveryFee === 0 ? "FREE" : `₹${deliveryFee.toLocaleString("en-IN")}`}</span>
                 </div>
-                <div className="border-t border-[#2D333D] pt-4 text-lg font-semibold text-white">
-                  <div className="flex justify-between">
-                    <span>Total</span>
-                    <span>₹{totalAmount.toLocaleString("en-IN")}</span>
-                  </div>
+                <div className="flex justify-between" style={{ color: "var(--color-muted)" }}>
+                  <span>Assembly by Carpenter</span>
+                  <span className="font-semibold text-emerald-600">FREE</span>
+                </div>
+                <div className="border-t pt-3 text-base font-bold flex justify-between" style={{ borderColor: "var(--color-border)", color: "var(--color-heading)" }}>
+                  <span>Total Amount</span>
+                  <span className="text-xl font-extrabold" style={{ color: "var(--color-accent)" }}>₹{totalAmount.toLocaleString("en-IN")}</span>
                 </div>
               </div>
             </aside>

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { FiHeart, FiShoppingCart, FiStar, FiEye } from "react-icons/fi";
+import { FiHeart, FiShoppingCart, FiStar, FiEye, FiTrash2 } from "react-icons/fi";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 
@@ -8,9 +8,10 @@ const formatPrice = (value) => `₹${value.toLocaleString("en-IN")}`;
 
 /**
  * ProductCard – displays a single product in the listing grid.
- * Accepts an optional `onQuickView` callback to open a quick-view modal.
+ * Accepts an optional `onQuickView` callback to open a quick-view modal,
+ * and an optional `onRemove` callback when displayed in a wishlist or saved items view.
  */
-function ProductCard({ product, onQuickView }) {
+function ProductCard({ product, onQuickView, onRemove }) {
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const productId = product._id || product.id;
@@ -18,7 +19,8 @@ function ProductCard({ product, onQuickView }) {
   const imageSrc =
     product.images?.[0]?.url ||
     (typeof product.images?.[0] === "string" ? product.images[0] : null) ||
-    "https://via.placeholder.com/640x480?text=ElectroMart+Product";
+    (typeof product.image === "string" ? product.image : product.image?.url) ||
+    "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=640&q=80";
 
   const discount = product.oldPrice
     ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
@@ -60,18 +62,34 @@ function ProductCard({ product, onQuickView }) {
           </span>
         )}
 
-        <button
-          type="button"
-          aria-label={isInWishlist(productId) ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleWishlist(product);
-          }}
-          className={`wishlist-btn ${isInWishlist(productId) ? "wishlist-btn--active" : ""}`}
-        >
-          <FiHeart size={16} className={isInWishlist(productId) ? "fill-current" : ""} />
-        </button>
+        {onRemove ? (
+          <button
+            type="button"
+            aria-label={`Remove ${product.name} from wishlist`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onRemove(productId);
+            }}
+            className="wishlist-btn group hover:!border-rose-500 hover:!text-rose-500 hover:!bg-rose-500/10"
+            title="Remove from wishlist"
+          >
+            <FiTrash2 size={16} className="text-rose-500 transition-transform group-hover:scale-110" />
+          </button>
+        ) : (
+          <button
+            type="button"
+            aria-label={isInWishlist(productId) ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleWishlist(product);
+            }}
+            className={`wishlist-btn ${isInWishlist(productId) ? "wishlist-btn--active" : ""}`}
+          >
+            <FiHeart size={16} className={isInWishlist(productId) ? "fill-current" : ""} />
+          </button>
+        )}
 
         <Link to={`/products/${productId}`} className="block h-full w-full">
           <img

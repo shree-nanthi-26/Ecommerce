@@ -52,9 +52,9 @@ function VerifyEmail() {
               <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl" style={{ background: "rgba(16, 185, 129, 0.1)", color: "var(--color-accent)" }}>
                 <FiCheckCircle />
               </div>
-              <h2 className="text-2xl font-bold" style={{ color: "var(--color-heading)" }}>Email Verified! 🎉</h2>
+              <h2 className="text-2xl font-serif font-bold" style={{ color: "var(--color-heading)" }}>Email Verified! 🎉</h2>
               <p className="text-sm" style={{ color: "var(--color-muted)" }}>
-                Thank you! Your email address has been successfully verified. You now have full access to ElectroMart features.
+                Thank you! Your email address has been successfully verified. You now have full access to Furniva.
               </p>
               <Link
                 to="/"
