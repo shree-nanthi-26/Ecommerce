@@ -3,6 +3,10 @@ runs/*.json
 
 # Local env with real credentials
 .env
+.env.*
+!.env.example
+*.log
 
 # Node modules (for node-fetch / dotenv if installed)
 node_modules/
+
