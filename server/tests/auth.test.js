@@ -13,7 +13,7 @@ describe("Auth Endpoints", () => {
       .send({
         name: "Test Customer",
         email: "customer@example.com",
-        password: "password123",
+        password: "StrongP@ssword123",
       });
 
     expect(res.status).toBe(201);
@@ -25,7 +25,7 @@ describe("Auth Endpoints", () => {
     await User.create({
       name: "Test Customer",
       email: "customer@example.com",
-      password: "password123",
+      password: "StrongP@ssword123",
     });
 
     const res = await request(app)
@@ -33,7 +33,7 @@ describe("Auth Endpoints", () => {
       .send({
         name: "Another Customer",
         email: "customer@example.com",
-        password: "password123",
+        password: "StrongP@ssword123",
       });
 
     expect(res.status).toBe(400);
@@ -44,14 +44,14 @@ describe("Auth Endpoints", () => {
     await User.create({
       name: "Test Customer",
       email: "customer@example.com",
-      password: "password123",
+      password: "StrongP@ssword123",
     });
 
     const res = await request(app)
       .post("/api/auth/login")
       .send({
         email: "customer@example.com",
-        password: "password123",
+        password: "StrongP@ssword123",
       });
 
     expect(res.status).toBe(200);
@@ -62,7 +62,7 @@ describe("Auth Endpoints", () => {
     await User.create({
       name: "Test Customer",
       email: "customer@example.com",
-      password: "password123",
+      password: "StrongP@ssword123",
     });
 
     const res = await request(app)

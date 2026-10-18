@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { FiHeart, FiShoppingCart, FiStar, FiEye, FiTrash2 } from "react-icons/fi";
@@ -132,6 +133,21 @@ function ProductCard({ product, onQuickView, onRemove }) {
           </span>
         </div>
 
+        {/* Furniture spec context badge - purely from existing DB fields */}
+        {(product.specs?.woodType || product.specs?.roomType) && (
+          <div className="flex items-center gap-1.5 flex-wrap my-1">
+            <span
+              className="text-[10px] font-bold px-2 py-0.5 rounded-md truncate max-w-[190px]"
+              style={{
+                background: "var(--color-surface-alt)",
+                color: "var(--color-muted)",
+              }}
+            >
+              {product.specs.woodType || product.specs.roomType}
+            </span>
+          </div>
+        )}
+
         <div className="product-card__price-row">
           <span className="product-card__price">{formatPrice(product.price)}</span>
           {product.oldPrice && (
@@ -168,4 +184,4 @@ function ProductCard({ product, onQuickView, onRemove }) {
   );
 }
 
-export default ProductCard;
+export default memo(ProductCard);

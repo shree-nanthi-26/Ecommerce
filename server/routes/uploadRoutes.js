@@ -13,7 +13,8 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
-router.post("/single", protect, adminOnly, upload.single("image"), uploadImage);
-router.post("/multiple", protect, adminOnly, upload.array("images", 5), uploadMultipleImages);
+router.post("/single", protect, upload.single("image"), uploadImage);
+router.post("/multiple", protect, upload.array("images", 5), uploadMultipleImages);
 
 export default router;
+

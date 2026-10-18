@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/common/SEO";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -82,13 +82,15 @@ function Categories() {
 
   return (
     <>
-      <Helmet>
-        <title>Furniture Collections – Furniva | Curated Living Spaces</title>
-        <meta
-          name="description"
-          content="Explore curated furniture collections at Furniva: Sofas & Seating, Beds & Bedroom, Dining, Living Room, Tables & Desks, and Storage Cabinets."
-        />
-      </Helmet>
+      <SEO
+        title="Furniture Collections – Furniva | Curated Living Spaces"
+        description="Explore curated furniture collections at Furniva: Sofas & Seating, Beds & Bedroom, Dining Furniture, Living Room, Tables & Desks, and Storage Cabinets."
+        canonicalUrl="/categories"
+        breadcrumbs={[
+          { name: "Home", item: "/" },
+          { name: "Collections", item: "/categories" },
+        ]}
+      />
 
       <Navbar />
 

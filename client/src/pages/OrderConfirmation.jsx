@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/common/SEO";
 import { FiCheckCircle, FiTruck, FiArrowRight } from "react-icons/fi";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
@@ -29,9 +29,11 @@ function OrderConfirmation() {
 
   return (
     <>
-      <Helmet>
-        <title>Order Confirmed – Furniva</title>
-      </Helmet>
+      <SEO
+        title="Order Confirmed | Furniva"
+        description="Your furniture purchase is confirmed."
+        noIndex={true}
+      />
       <Navbar />
       <main
         className="min-h-screen px-4 sm:px-8 py-16"

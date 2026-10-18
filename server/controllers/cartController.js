@@ -28,9 +28,16 @@ export async function syncCart(req, res, next) {
       });
     }
 
+    const now = new Date();
     const cart = await Cart.findOneAndUpdate(
       { user: req.user._id },
-      { items: updatedItems },
+      {
+        items: updatedItems,
+        lastActivityAt: now,
+        isAbandoned: false,
+        reminderCount: 0,
+        lastReminderSentAt: null,
+      },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     ).populate("items.product");
 
@@ -49,11 +56,16 @@ export async function addItem(req, res, next) {
       throw new Error("Product not found");
     }
 
+    const now = new Date();
     let cart = await Cart.findOne({ user: req.user._id });
     if (!cart) {
       cart = await Cart.create({
         user: req.user._id,
         items: [{ product: product._id, quantity, price: product.price }],
+        lastActivityAt: now,
+        isAbandoned: false,
+        reminderCount: 0,
+        lastReminderSentAt: null,
       });
     } else {
       const existing = cart.items.find((item) => item.product.toString() === productId);
@@ -63,6 +75,10 @@ export async function addItem(req, res, next) {
       } else {
         cart.items.push({ product: product._id, quantity, price: product.price });
       }
+      cart.lastActivityAt = now;
+      cart.isAbandoned = false;
+      cart.reminderCount = 0;
+      cart.lastReminderSentAt = null;
       await cart.save();
     }
 
@@ -97,6 +113,10 @@ export async function updateItem(req, res, next) {
       item.price = product ? product.price : item.price;
     }
 
+    cart.lastActivityAt = new Date();
+    cart.isAbandoned = false;
+    cart.reminderCount = 0;
+    cart.lastReminderSentAt = null;
     await cart.save();
     await cart.populate("items.product");
     res.json(cart);
@@ -115,6 +135,10 @@ export async function removeItem(req, res, next) {
     }
 
     cart.items = cart.items.filter((i) => i.product.toString() !== productId);
+    cart.lastActivityAt = new Date();
+    cart.isAbandoned = false;
+    cart.reminderCount = 0;
+    cart.lastReminderSentAt = null;
     await cart.save();
     await cart.populate("items.product");
     res.json(cart);
@@ -127,7 +151,13 @@ export async function clearCart(req, res, next) {
   try {
     const cart = await Cart.findOneAndUpdate(
       { user: req.user._id },
-      { items: [] },
+      {
+        items: [],
+        lastActivityAt: new Date(),
+        isAbandoned: false,
+        reminderCount: 0,
+        lastReminderSentAt: null,
+      },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     ).populate("items.product");
 

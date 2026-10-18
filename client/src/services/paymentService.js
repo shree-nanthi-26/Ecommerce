@@ -1,7 +1,8 @@
 import axiosInstance from "../api/axiosInstance";
 
-export async function createPaymentOrder(amount) {
-  const response = await axiosInstance.post(`/payment/create-order`, { amount });
+export async function createPaymentOrder(data) {
+  const payload = typeof data === "object" && data !== null ? data : { amount: data };
+  const response = await axiosInstance.post(`/payment/create-order`, payload);
   return response.data;
 }
 

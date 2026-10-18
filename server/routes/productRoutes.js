@@ -5,23 +5,20 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  checkProductDelivery,
+  getSearchSuggestions,
 } from "../controllers/productController.js";
-import { protect } from "../middleware/authMiddleware.js";
+import { protect, admin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-const adminOnly = (req, res, next) => {
-  if (!req.user || req.user.role !== "admin") {
-    res.status(403);
-    throw new Error("Admin access required");
-  }
-  next();
-};
-
 router.get("/", getAllProducts);
+router.get("/search/suggestions", getSearchSuggestions);
+router.get("/:id/delivery-check", checkProductDelivery);
 router.get("/:id", getProductById);
-router.post("/", protect, adminOnly, createProduct);
-router.put("/:id", protect, adminOnly, updateProduct);
-router.delete("/:id", protect, adminOnly, deleteProduct);
+router.post("/", protect, admin, createProduct);
+router.put("/:id", protect, admin, updateProduct);
+router.delete("/:id", protect, admin, deleteProduct);
 
 export default router;
+

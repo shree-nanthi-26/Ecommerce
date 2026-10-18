@@ -4,7 +4,7 @@ const AuditLogSchema = new mongoose.Schema({
   admin: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: true
+    required: false,
   },
   action: {
     type: String,
@@ -36,5 +36,6 @@ const AuditLogSchema = new mongoose.Schema({
 AuditLogSchema.index({ admin: 1 });
 AuditLogSchema.index({ "target.id": 1 });
 AuditLogSchema.index({ timestamp: -1 });
+AuditLogSchema.index({ action: 1, timestamp: -1 });
 
 export default mongoose.model("AuditLog", AuditLogSchema);

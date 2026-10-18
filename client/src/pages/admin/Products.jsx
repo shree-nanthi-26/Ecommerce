@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiPlus, FiEdit2, FiTrash2, FiAlertCircle } from "react-icons/fi";
-import { getAllProducts, deleteProduct } from "../../services/productService";
+import { getAdminProducts, deleteAdminProduct } from "../../services/adminService";
+import { getAllProducts, deleteProduct as fallbackDeleteProduct } from "../../services/productService";
 
 const formatPrice = (val) => `₹${val?.toLocaleString("en-IN") || 0}`;
 
@@ -14,8 +15,14 @@ function Products() {
     async function fetchProducts() {
       try {
         setLoading(true);
-        const data = await getAllProducts();
-        const list = Array.isArray(data) ? data : (data?.products || []);
+        let list = [];
+        try {
+          const data = await getAdminProducts({ limit: 100 });
+          list = Array.isArray(data) ? data : (data?.products || []);
+        } catch {
+          const fallbackData = await getAllProducts({ limit: 100 });
+          list = Array.isArray(fallbackData) ? fallbackData : (fallbackData?.products || []);
+        }
         setProducts(list);
       } catch (err) {
         setError("Failed to load products list.");
@@ -30,7 +37,11 @@ function Products() {
     if (!window.confirm("Are you sure you want to delete this product? This action is irreversible.")) return;
 
     try {
-      await deleteProduct(id);
+      try {
+        await deleteAdminProduct(id);
+      } catch {
+        await fallbackDeleteProduct(id);
+      }
       setProducts((prev) => prev.filter((p) => (p._id || p.id) !== id));
     } catch (err) {
       alert("Failed to delete product. Please try again.");
@@ -114,7 +125,7 @@ function Products() {
                   const imageUrl =
                     p.images?.[0]?.url ||
                     (typeof p.images?.[0] === "string" ? p.images[0] : null) ||
-                    "https://images.unsplash.com/photo-1531297484001-80022131f5a1?auto=format&fit=crop&w=100&q=80";
+                    "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=100&q=80";
 
                   return (
                     <tr key={prodId} className="hover:bg-[var(--color-surface-alt)] transition">

@@ -25,3 +25,20 @@ export async function deleteProduct(id) {
   return response.data;
 }
 
+export async function checkProductDelivery(productId, pincode) {
+  const targetId = productId || "general";
+  const response = await axiosInstance.get(`/products/${targetId}/delivery-check`, {
+    params: { pincode },
+  });
+  return response.data;
+}
+
+export async function getSearchSuggestions(query = "") {
+  const response = await axiosInstance.get("/products/search/suggestions", {
+    params: { q: query },
+  });
+  return response.data;
+}
+
+
+

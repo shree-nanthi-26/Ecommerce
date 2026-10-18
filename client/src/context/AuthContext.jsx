@@ -1,17 +1,31 @@
 import { createContext, useContext, useMemo, useState } from "react";
-import { loginUser as loginService, registerUser as registerService, resendVerificationEmail as resendService } from "../services/authService";
+import {
+  loginUser as loginService,
+  registerUser as registerService,
+  resendVerificationEmail as resendService,
+  validate2FALogin as validate2FALoginService,
+} from "../services/authService";
 
 const AuthContext = createContext(null);
 
 const AUTH_STORAGE_KEY = "furniva_user";
-const LEGACY_STORAGE_KEY = "electromart_user"; // Legacy compatibility migration key
+const LEGACY_STORAGE_KEY = "electromart_user";
 
 function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    const storedUser =
-      localStorage.getItem(AUTH_STORAGE_KEY) ||
-      localStorage.getItem(LEGACY_STORAGE_KEY);
-    return storedUser ? JSON.parse(storedUser) : null;
+    let storedUser = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (!storedUser) {
+      storedUser = localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (storedUser) {
+        localStorage.setItem(AUTH_STORAGE_KEY, storedUser);
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
+      }
+    }
+    try {
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch {
+      return null;
+    }
   });
 
   const saveUser = (userData) => {
@@ -22,6 +36,14 @@ function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const data = await loginService(email, password);
+    if (!data.require2FA) {
+      saveUser(data);
+    }
+    return data;
+  };
+
+  const complete2FALogin = async (tempToken, code, recoveryCode) => {
+    const data = await validate2FALoginService(tempToken, code, recoveryCode);
     saveUser(data);
     return data;
   };
@@ -50,7 +72,16 @@ function AuthProvider({ children }) {
   };
 
   const value = useMemo(
-    () => ({ user, login, register, markVerified, resendVerification, logout }),
+    () => ({
+      user,
+      login,
+      complete2FALogin,
+      saveUser,
+      register,
+      markVerified,
+      resendVerification,
+      logout,
+    }),
     [user]
   );
 

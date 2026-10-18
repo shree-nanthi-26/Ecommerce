@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="maskBg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#8B5E3C"/>
+      <stop offset="100%" stop-color="#4A301D"/>
+    </linearGradient>
+    <linearGradient id="maskGold" x1="128" y1="128" x2="384" y2="384" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EED9C4"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Full edge-to-edge background for adaptive maskable icon -->
+  <rect width="512" height="512" fill="url(#maskBg)"/>
+
+  <!-- Centered within safe zone (80% circle) -->
+  <g transform="translate(106, 106) scale(12.5)">
+    <path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3" stroke="url(#maskGold)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M3 11v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z" stroke="url(#maskGold)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M6 18v3" stroke="url(#maskGold)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M18 18v3" stroke="url(#maskGold)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

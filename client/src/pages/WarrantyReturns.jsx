@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/common/SEO";
 import { FiShield, FiRefreshCw, FiCheckCircle, FiMail, FiPhone } from "react-icons/fi";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
@@ -6,13 +6,15 @@ import Footer from "../components/layout/Footer";
 function WarrantyReturns() {
   return (
     <>
-      <Helmet>
-        <title>Warranty & Returns Policy – Furniva | Craftsmanship Guarantee</title>
-        <meta
-          name="description"
-          content="Learn about Furniva's 3-year craftsmanship warranty, 15-day hassle-free return window, and 100% solid wood authenticity guarantee."
-        />
-      </Helmet>
+      <SEO
+        title="Warranty & Returns Policy | Furniva Craftsmanship Guarantee"
+        description="Learn about Furniva's craftsmanship warranty, hassle-free return window, and solid wood authenticity guarantee."
+        canonicalUrl="/warranty-returns"
+        breadcrumbs={[
+          { name: "Home", item: "/" },
+          { name: "Warranty & Returns", item: "/warranty-returns" },
+        ]}
+      />
 
       <Navbar />
 

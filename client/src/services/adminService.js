@@ -1,7 +1,7 @@
 import axiosInstance from "../api/axiosInstance";
 
-export async function getDashboardStats() {
-  const response = await axiosInstance.get("/admin/dashboard");
+export async function getDashboardStats(params = {}) {
+  const response = await axiosInstance.get("/admin/dashboard", { params });
   return response.data;
 }
 
@@ -20,18 +20,44 @@ export async function deleteUser(userId) {
   return response.data;
 }
 
+export async function getAdminProducts(params) {
+  const response = await axiosInstance.get("/admin/products", { params });
+  return response.data;
+}
+
+export async function getAdminProductById(id) {
+  const response = await axiosInstance.get(`/admin/products/${id}`);
+  return response.data;
+}
+
+export async function createAdminProduct(productData) {
+  const response = await axiosInstance.post("/admin/products", productData);
+  return response.data;
+}
+
+export async function updateAdminProduct(id, productData) {
+  const response = await axiosInstance.put(`/admin/products/${id}`, productData);
+  return response.data;
+}
+
+export async function deleteAdminProduct(id) {
+  const response = await axiosInstance.delete(`/admin/products/${id}`);
+  return response.data;
+}
+
 export async function getAdminOrders() {
   const response = await axiosInstance.get("/admin/orders");
   return response.data;
 }
 
-export async function updateOrderStatus(orderId, status) {
-  const response = await axiosInstance.put(`/admin/orders/${orderId}/status`, { status });
+export async function updateOrderStatus(orderId, payload) {
+  const body = typeof payload === "object" ? payload : { status: payload };
+  const response = await axiosInstance.put(`/admin/orders/${orderId}/status`, body);
   return response.data;
 }
 
-export async function toggleOrderPayment(orderId) {
-  const response = await axiosInstance.put(`/admin/orders/${orderId}/pay`);
+export async function toggleOrderPayment(orderId, reason) {
+  const response = await axiosInstance.put(`/admin/orders/${orderId}/pay`, { reason });
   return response.data;
 }
 
@@ -52,5 +78,20 @@ export async function blockIP(ip, reason, expiresAt) {
 
 export async function unblockIP(id) {
   const response = await axiosInstance.put(`/admin/blocked-ips/${id}/unblock`);
+  return response.data;
+}
+
+export async function getAuditLogs(params = {}) {
+  const response = await axiosInstance.get("/admin/audit-logs", { params });
+  return response.data;
+}
+
+export async function getSecurityDashboard() {
+  const response = await axiosInstance.get("/admin/security/dashboard");
+  return response.data;
+}
+
+export async function getSecurityEvents(params = {}) {
+  const response = await axiosInstance.get("/admin/security/events", { params });
   return response.data;
 }

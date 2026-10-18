@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FiMinus, FiPlus, FiTrash2, FiShoppingBag, FiArrowRight, FiTag, FiCheckCircle, FiX } from "react-icons/fi";
+import SEO from "../components/common/SEO";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
+import ProductRecommendations from "../components/product/ProductRecommendations";
 import { useCart } from "../context/CartContext";
 import { validateCoupon } from "../services/couponService";
+
 
 const formatPrice = (value) => `₹${value.toLocaleString("en-IN")}`;
 
@@ -52,6 +55,12 @@ function Cart() {
 
   return (
     <>
+      <SEO
+        title="Shopping Cart | Furniva"
+        description="Review your selected furniture items, customize quantities, and apply discount vouchers."
+        canonicalUrl="/cart"
+        noIndex={true}
+      />
       <Navbar />
       <main className="min-h-screen px-4 sm:px-8 py-16 transition-colors duration-300" style={{ background: "var(--color-bg)", color: "var(--color-body)" }}>
         <div className="mx-auto max-w-[1500px]">
@@ -239,6 +248,17 @@ function Cart() {
               </div>
             </div>
           )}
+
+          {/* Cross-Sell Recommendations */}
+          <div className="mt-16 border-t pt-8" style={{ borderColor: "var(--color-border)" }}>
+            <ProductRecommendations
+              type="you_may_like"
+              limit={4}
+              badge="Complete Your Room"
+              title="You May Also Like"
+              subtitle="Coordinated furniture pieces designed to match items in your bag."
+            />
+          </div>
         </div>
       </main>
       <Footer />
@@ -247,3 +267,4 @@ function Cart() {
 }
 
 export default Cart;
+

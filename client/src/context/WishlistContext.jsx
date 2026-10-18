@@ -1,17 +1,20 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useAuth } from "./AuthContext";
+import { useCart } from "./CartContext";
 import {
   getWishlist as getRemoteWishlist,
   syncWishlist as syncRemoteWishlist,
   addToWishlist as addRemoteWishlistItem,
   removeFromWishlist as removeRemoteWishlistItem,
   clearWishlist as clearRemoteWishlist,
+  updateWishlistNotifications as updateRemoteWishlistNotifications,
+  moveWishlistItemToCart as moveRemoteWishlistItemToCart,
 } from "../services/wishlistService";
 import { getAllProducts } from "../services/productService";
 
 const WishlistContext = createContext(null);
 const GUEST_WISHLIST_KEY = "furniva_guest_wishlist";
-const LEGACY_WISHLIST_KEY = "electromart_guest_wishlist"; // Legacy compatibility migration key
+const LEGACY_WISHLIST_KEY = "electromart_guest_wishlist";
 
 function normalizeWishlistProduct(product) {
   let images = [];
@@ -31,13 +34,22 @@ function normalizeWishlistProduct(product) {
   }
 
   const id = product._id || product.id;
+  const currentPrice = Number(product.price) || 0;
+  const priceWhenAdded = Number(product.priceWhenAdded) || currentPrice;
+  const priceDrop =
+    currentPrice < priceWhenAdded ? priceWhenAdded - currentPrice : Number(product.priceDrop) || 0;
 
   return {
     _id: id,
     id,
     name: product.name || "",
-    price: product.price ?? 0,
-    oldPrice: product.oldPrice ?? 0,
+    price: currentPrice,
+    oldPrice: Number(product.oldPrice) || 0,
+    priceWhenAdded,
+    priceDrop,
+    notifyOnPriceDrop: Boolean(product.notifyOnPriceDrop),
+    notifyOnRestock: Boolean(product.notifyOnRestock),
+    addedAt: product.addedAt || new Date().toISOString(),
     rating: product.rating ?? 0,
     reviews: product.reviews ?? 0,
     category: product.category || "",
@@ -53,11 +65,17 @@ function normalizeWishlistProduct(product) {
 
 function WishlistProvider({ children }) {
   const { user } = useAuth();
+  const { addToCart } = useCart();
   const [wishlist, setWishlist] = useState(() => {
     try {
-      const storedWishlist =
-        localStorage.getItem(GUEST_WISHLIST_KEY) ||
-        localStorage.getItem(LEGACY_WISHLIST_KEY);
+      let storedWishlist = localStorage.getItem(GUEST_WISHLIST_KEY);
+      if (!storedWishlist) {
+        storedWishlist = localStorage.getItem(LEGACY_WISHLIST_KEY);
+        if (storedWishlist) {
+          localStorage.setItem(GUEST_WISHLIST_KEY, storedWishlist);
+          localStorage.removeItem(LEGACY_WISHLIST_KEY);
+        }
+      }
       return storedWishlist ? JSON.parse(storedWishlist).map(normalizeWishlistProduct) : [];
     } catch {
       return [];
@@ -160,7 +178,11 @@ function WishlistProvider({ children }) {
 
       return [
         ...currentWishlist,
-        normalizeWishlistProduct(product),
+        normalizeWishlistProduct({
+          ...product,
+          priceWhenAdded: product.price,
+          addedAt: new Date().toISOString(),
+        }),
       ];
     });
   };
@@ -206,6 +228,54 @@ function WishlistProvider({ children }) {
     return wishlist.some((item) => (item._id || item.id) === targetId);
   };
 
+  const updateNotificationConsent = async (productId, data) => {
+    if (user) {
+      const res = await updateRemoteWishlistNotifications(productId, data);
+      if (res?.data?.products) {
+        setWishlist(res.data.products.map(normalizeWishlistProduct));
+      }
+      return res;
+    }
+
+    setWishlist((currentWishlist) =>
+      currentWishlist.map((item) => {
+        if ((item._id || item.id) === productId) {
+          return {
+            ...item,
+            notifyOnPriceDrop:
+              data.notifyOnPriceDrop !== undefined
+                ? Boolean(data.notifyOnPriceDrop)
+                : item.notifyOnPriceDrop,
+            notifyOnRestock:
+              data.notifyOnRestock !== undefined
+                ? Boolean(data.notifyOnRestock)
+                : item.notifyOnRestock,
+          };
+        }
+        return item;
+      })
+    );
+    return { success: true };
+  };
+
+  const moveToCart = async (product) => {
+    const productId = product._id || product.id;
+    if (user) {
+      const res = await moveRemoteWishlistItemToCart(productId);
+      if (res?.wishlist?.products) {
+        setWishlist(res.wishlist.products.map(normalizeWishlistProduct));
+      } else {
+        removeFromWishlist(productId);
+      }
+      await addToCart(product, 1);
+      return res;
+    }
+
+    await addToCart(product, 1);
+    removeFromWishlist(productId);
+    return { success: true };
+  };
+
   const wishlistCount = useMemo(() => wishlist.length, [wishlist]);
 
   const value = useMemo(
@@ -216,6 +286,8 @@ function WishlistProvider({ children }) {
       clearWishlist,
       toggleWishlist,
       isInWishlist,
+      updateNotificationConsent,
+      moveToCart,
       wishlistCount,
     }),
     [wishlist, wishlistCount]

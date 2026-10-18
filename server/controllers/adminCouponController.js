@@ -1,4 +1,5 @@
 import Coupon from "../models/Coupon.js";
+import { createBroadcastNotification } from "../services/notificationService.js";
 
 // @desc    Get all coupons (Admin)
 // @route   GET /api/admin/coupons
@@ -54,6 +55,27 @@ export async function createCoupon(req, res, next) {
       isPublic: isPublic !== undefined ? Boolean(isPublic) : true,
       description: description || "",
     });
+
+    // If coupon is public and active, broadcast new deal notification
+    if (coupon.isActive && coupon.isPublic) {
+      const discountText =
+        coupon.discountType === "percentage"
+          ? `${coupon.discountValue}% OFF`
+          : `₹${coupon.discountValue} OFF`;
+      createBroadcastNotification({
+        type: "new_deals",
+        title: `New Deal Alert: ${discountText} with code ${coupon.code}!`,
+        message:
+          coupon.description ||
+          `Enjoy ${discountText} on your next order. Minimum spend: ₹${coupon.minOrderValue}. Use code ${coupon.code} at checkout.`,
+        link: "/deals",
+        metadata: {
+          couponCode: coupon.code,
+          discountValue: coupon.discountValue,
+          discountType: coupon.discountType,
+        },
+      }).catch((err) => console.error("Broadcast deal notification error:", err));
+    }
 
     res.status(201).json(coupon);
   } catch (error) {

@@ -1,38 +1,51 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import PageSkeleton from "../components/common/PageSkeleton";
 
-import Home from "../pages/Home";
-import Products from "../pages/Products";
-import ProductDetail from "../pages/ProductDetail";
-import Cart from "../pages/Cart";
-import Wishlist from "../pages/Wishlist";
-import Login from "../pages/Login";
-import Register from "../pages/Register";
-import ForgotPassword from "../pages/ForgotPassword";
-import ResetPassword from "../pages/ResetPassword";
-import VerifyEmail from "../pages/VerifyEmail";
-import Checkout from "../pages/Checkout";
-import OrderConfirmation from "../pages/OrderConfirmation";
-import Orders from "../pages/Orders";
-import Categories from "../pages/Categories";
-import Deals from "../pages/Deals";
-import Compare from "../pages/Compare";
-import Support from "../pages/Support";
-import TrackOrder from "../pages/TrackOrder";
-import WarrantyReturns from "../pages/WarrantyReturns";
-import Profile from "../pages/Profile";
-
+// Core Guards & Layouts
 import ProtectedRoute from "./ProtectedRoute";
 import AdminRoute from "./AdminRoute";
-
 import AdminLayout from "../components/layout/AdminLayout";
-import AdminDashboard from "../pages/admin/Dashboard";
-import AdminProducts from "../pages/admin/Products";
-import AdminProductForm from "../pages/admin/ProductForm";
-import AdminOrders from "../pages/admin/Orders";
-import AdminUsers from "../pages/admin/Users";
-import AdminWafLogs from "../pages/admin/WafLogs";
-import AdminBlockedIps from "../pages/admin/BlockedIps";
 
+// Customer Pages (Lazy loaded)
+const Home = lazy(() => import("../pages/Home"));
+const Products = lazy(() => import("../pages/Products"));
+const ProductDetail = lazy(() => import("../pages/ProductDetail"));
+const Cart = lazy(() => import("../pages/Cart"));
+const Wishlist = lazy(() => import("../pages/Wishlist"));
+const Login = lazy(() => import("../pages/Login"));
+const Register = lazy(() => import("../pages/Register"));
+const ForgotPassword = lazy(() => import("../pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("../pages/ResetPassword"));
+const VerifyEmail = lazy(() => import("../pages/VerifyEmail"));
+const Checkout = lazy(() => import("../pages/Checkout"));
+const OrderConfirmation = lazy(() => import("../pages/OrderConfirmation"));
+const Orders = lazy(() => import("../pages/Orders"));
+const Categories = lazy(() => import("../pages/Categories"));
+const Deals = lazy(() => import("../pages/Deals"));
+const Compare = lazy(() => import("../pages/Compare"));
+const Support = lazy(() => import("../pages/Support"));
+const TrackOrder = lazy(() => import("../pages/TrackOrder"));
+const WarrantyReturns = lazy(() => import("../pages/WarrantyReturns"));
+const Profile = lazy(() => import("../pages/Profile"));
+const Addresses = lazy(() => import("../pages/Addresses"));
+const NotificationCenter = lazy(() => import("../pages/NotificationCenter"));
+const Unsubscribe = lazy(() => import("../pages/Unsubscribe"));
+
+// Admin Pages (Lazy loaded)
+const AdminDashboard = lazy(() => import("../pages/admin/Dashboard"));
+const AdminProducts = lazy(() => import("../pages/admin/Products"));
+const AdminProductForm = lazy(() => import("../pages/admin/ProductForm"));
+const AdminInventory = lazy(() => import("../pages/admin/Inventory"));
+const AdminOrders = lazy(() => import("../pages/admin/Orders"));
+const AdminReturns = lazy(() => import("../pages/admin/Returns"));
+const AdminTickets = lazy(() => import("../pages/admin/Tickets"));
+const AdminUsers = lazy(() => import("../pages/admin/Users"));
+const AdminActivity = lazy(() => import("../pages/admin/Activity"));
+const AdminSecurityDashboard = lazy(() => import("../pages/admin/SecurityDashboard"));
+
+// Heavy interactive widgets (Lazy loaded)
+const ShoppingAssistant = lazy(() => import("../components/assistant/ShoppingAssistant"));
 
 function NotFound() {
   return (
@@ -47,27 +60,20 @@ function NotFound() {
       }}
     >
       <h1>404</h1>
-
       <h2>Page Not Found</h2>
-
-      <p>
-        The page you are looking for does not exist.
-      </p>
-
+      <p>The page you are looking for does not exist.</p>
       <a href="/">
-        <button>
-          Back to Home
-        </button>
+        <button className="btn-primary mt-4">Back to Home</button>
       </a>
     </div>
   );
 }
 
-
 function AppRoutes() {
   return (
     <BrowserRouter>
-      <Routes>
+      <Suspense fallback={<PageSkeleton />}>
+        <Routes>
 
         {/* ==================== PUBLIC ROUTES ==================== */}
 
@@ -137,6 +143,16 @@ function AppRoutes() {
           element={<Wishlist />}
         />
 
+        <Route
+          path="/notifications"
+          element={<NotificationCenter />}
+        />
+
+        <Route
+          path="/unsubscribe"
+          element={<Unsubscribe />}
+        />
+
 
         {/* ==================== PROTECTED USER ROUTES ==================== */}
 
@@ -165,6 +181,11 @@ function AppRoutes() {
           <Route
             path="/profile"
             element={<Profile />}
+          />
+
+          <Route
+            path="/addresses"
+            element={<Addresses />}
           />
 
         </Route>
@@ -197,8 +218,23 @@ function AppRoutes() {
             />
 
             <Route
+              path="/admin/inventory"
+              element={<AdminInventory />}
+            />
+
+            <Route
               path="/admin/orders"
               element={<AdminOrders />}
+            />
+
+            <Route
+              path="/admin/returns"
+              element={<AdminReturns />}
+            />
+
+            <Route
+              path="/admin/tickets"
+              element={<AdminTickets />}
             />
 
             <Route
@@ -207,13 +243,23 @@ function AppRoutes() {
             />
 
             <Route
+              path="/admin/activity"
+              element={<AdminActivity />}
+            />
+
+            <Route
+              path="/admin/security"
+              element={<AdminSecurityDashboard />}
+            />
+
+            <Route
               path="/admin/attack-logs"
-              element={<AdminWafLogs />}
+              element={<AdminSecurityDashboard />}
             />
 
             <Route
               path="/admin/blocked-ips"
-              element={<AdminBlockedIps />}
+              element={<AdminSecurityDashboard />}
             />
 
           </Route>
@@ -229,6 +275,8 @@ function AppRoutes() {
         />
 
       </Routes>
+      <ShoppingAssistant />
+      </Suspense>
     </BrowserRouter>
   );
 }

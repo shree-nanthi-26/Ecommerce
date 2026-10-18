@@ -23,6 +23,24 @@ const orderItemSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const statusHistorySchema = new mongoose.Schema(
+  {
+    status: {
+      type: String,
+      required: true,
+    },
+    timestamp: {
+      type: Date,
+      default: Date.now,
+    },
+    comment: {
+      type: String,
+      default: "",
+    },
+  },
+  { _id: false }
+);
+
 const orderSchema = new mongoose.Schema(
   {
     user: {
@@ -71,8 +89,32 @@ const orderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Placed", "Confirmed", "Shipped", "Delivered", "Cancelled"],
+      enum: [
+        "Placed",
+        "Confirmed",
+        "Packed",
+        "Shipped",
+        "Out for Delivery",
+        "Delivered",
+        "Cancelled",
+      ],
       default: "Placed",
+    },
+    courier: {
+      type: String,
+      default: null,
+    },
+    trackingNumber: {
+      type: String,
+      default: null,
+    },
+    expectedDelivery: {
+      type: Date,
+      default: null,
+    },
+    statusHistory: {
+      type: [statusHistorySchema],
+      default: [],
     },
     isPaid: {
       type: Boolean,
@@ -87,6 +129,14 @@ const orderSchema = new mongoose.Schema(
     razorpayPaymentId: {
       type: String,
     },
+    cancellationReason: {
+      type: String,
+      default: null,
+    },
+    cancelledAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -97,6 +147,7 @@ const orderSchema = new mongoose.Schema(
 orderSchema.index({ user: 1, createdAt: -1 });
 orderSchema.index({ status: 1 });
 orderSchema.index({ razorpayOrderId: 1 });
+orderSchema.index({ createdAt: -1 });
 
 const Order = mongoose.model("Order", orderSchema);
 export default Order;

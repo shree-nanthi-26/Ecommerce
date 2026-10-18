@@ -7,13 +7,22 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use((config) => {
-  const storedUser =
-    localStorage.getItem("furniva_user") ||
-    localStorage.getItem("electromart_user"); // Legacy compatibility fallback key
+  let storedUser = localStorage.getItem("furniva_user");
+  if (!storedUser) {
+    storedUser = localStorage.getItem("electromart_user");
+    if (storedUser) {
+      localStorage.setItem("furniva_user", storedUser);
+      localStorage.removeItem("electromart_user");
+    }
+  }
   if (storedUser) {
-    const user = JSON.parse(storedUser);
-    if (user.token) {
-      config.headers.Authorization = `Bearer ${user.token}`;
+    try {
+      const user = JSON.parse(storedUser);
+      if (user.token) {
+        config.headers.Authorization = `Bearer ${user.token}`;
+      }
+    } catch {
+      // Ignore parse error
     }
   }
   return config;

@@ -45,10 +45,19 @@ function mapCartItemsForSync(items) {
 function CartProvider({ children }) {
   const { user } = useAuth();
   const [cart, setCart] = useState(() => {
-    const storedCart =
-      localStorage.getItem(GUEST_CART_KEY) ||
-      localStorage.getItem(LEGACY_CART_KEY);
-    return storedCart ? JSON.parse(storedCart) : [];
+    try {
+      let storedCart = localStorage.getItem(GUEST_CART_KEY);
+      if (!storedCart) {
+        storedCart = localStorage.getItem(LEGACY_CART_KEY);
+        if (storedCart) {
+          localStorage.setItem(GUEST_CART_KEY, storedCart);
+          localStorage.removeItem(LEGACY_CART_KEY);
+        }
+      }
+      return storedCart ? JSON.parse(storedCart) : [];
+    } catch {
+      return [];
+    }
   });
   const [loading, setLoading] = useState(false);
 

@@ -2,6 +2,7 @@ import Product from "../models/Product.js";
 import redis from "../config/redis.js";
 import cloudinary from "../config/cloudinary.js";
 import { logAudit } from "../services/auditService.js";
+import { checkDeliveryAvailability } from "../services/deliveryService.js";
 
 const PRODUCT_CACHE_TTL = 300; // 5 minutes
 
@@ -37,10 +38,21 @@ export async function getAllProducts(req, res, next) {
     if (minRating) filter.rating = { $gte: Number(minRating) };
     if (badge) filter.badge = badge;
 
-    // Text search — case-insensitive regex on name and category
-    if (q) {
-      const regex = new RegExp(q, "i");
-      filter.$or = [{ name: regex }, { category: regex }];
+    // Text search — matches name, category, brand, attributes, and description
+    if (q && q.trim()) {
+      const cleanQ = q.trim();
+      const regex = new RegExp(cleanQ, "i");
+      filter.$or = [
+        { name: regex },
+        { category: regex },
+        { brand: regex },
+        { description: regex },
+        { "specs.material": regex },
+        { "specs.color": regex },
+        { "specs.roomType": regex },
+        { "specs.style": regex },
+        { "specs.woodType": regex },
+      ];
     }
 
     // Pagination
@@ -73,8 +85,18 @@ export async function getAllProducts(req, res, next) {
       Product.countDocuments(filter),
     ]);
 
+    // If zero results for search query, fetch top-rated product recommendations
+    let recommendations = [];
+    if (total === 0 && q) {
+      recommendations = await Product.find({})
+        .select("name price oldPrice category brand images rating stock badge")
+        .sort({ rating: -1, reviews: -1 })
+        .limit(4)
+        .lean();
+    }
+
     const totalPages = Math.ceil(total / limit);
-    res.json({ products, page, limit, total, totalPages });
+    res.json({ products, page, limit, total, totalPages, recommendations });
   } catch (error) {
     next(error);
   }
@@ -198,3 +220,160 @@ export async function deleteProduct(req, res, next) {
     next(error);
   }
 }
+
+/**
+ * @desc    Check delivery availability and estimates for a product by pincode
+ * @route   GET /api/products/:id/delivery-check?pincode=560001
+ * @access  Public
+ */
+export async function checkProductDelivery(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { pincode } = req.query;
+
+    if (!pincode) {
+      res.status(400);
+      throw new Error("Pincode query parameter is required");
+    }
+
+    let productPrice = 0;
+    if (id && id !== "general") {
+      const product = await Product.findById(id).select("price name stock");
+      if (product) {
+        productPrice = product.price || 0;
+      }
+    }
+
+    const deliveryInfo = checkDeliveryAvailability(pincode, productPrice);
+    if (!deliveryInfo.success) {
+      return res.status(400).json(deliveryInfo);
+    }
+
+    res.status(200).json(deliveryInfo);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * @desc    Get live search suggestions for products, categories, brands, popular searches & recommendations
+ * @route   GET /api/products/search/suggestions?q=...
+ * @access  Public
+ */
+export async function getSearchSuggestions(req, res, next) {
+  try {
+    const rawQ = req.query.q || "";
+    const cleanQ = rawQ.trim();
+
+    const POPULAR_SEARCHES = [
+      "Modern Sofa",
+      "Dining Table",
+      "King Bed",
+      "Ergonomic Chair",
+      "Coffee Table",
+      "Solid Wood",
+      "Velvet Armchair",
+      "Bookshelf",
+    ];
+
+    // If query is empty, return popular searches, categories & brands
+    if (!cleanQ) {
+      const cacheKey = "search:suggest:empty";
+      try {
+        const cached = await redis.get(cacheKey);
+        if (cached) return res.json(JSON.parse(cached));
+      } catch (cacheErr) {
+        // Cache read failure is non-fatal
+      }
+
+      const [categories, brands] = await Promise.all([
+        Product.distinct("category"),
+        Product.distinct("brand"),
+      ]);
+
+      const result = {
+        query: "",
+        products: [],
+        categories: (categories || []).filter(Boolean).slice(0, 6),
+        brands: (brands || []).filter(Boolean).slice(0, 6),
+        popular: POPULAR_SEARCHES,
+        recommendations: [],
+      };
+
+      try {
+        await redis.set(cacheKey, JSON.stringify(result), "EX", 300);
+      } catch (e) {}
+
+      return res.json(result);
+    }
+
+    // Try Redis cache for specific query
+    const cacheKey = `search:suggest:${cleanQ.toLowerCase()}`;
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) return res.json(JSON.parse(cached));
+    } catch (e) {}
+
+    const regex = new RegExp(cleanQ, "i");
+
+    // Search across products, categories, brands, and spec attributes
+    const [matchingProducts, categories, brands] = await Promise.all([
+      Product.find({
+        $or: [
+          { name: regex },
+          { category: regex },
+          { brand: regex },
+          { "specs.material": regex },
+          { "specs.roomType": regex },
+          { "specs.style": regex },
+          { "specs.color": regex },
+        ],
+      })
+        .select("name category brand price oldPrice images rating badge stock specs")
+        .limit(6)
+        .lean(),
+      Product.distinct("category", { category: regex }),
+      Product.distinct("brand", { brand: regex }),
+    ]);
+
+    // If no results, fetch top-rated recommendations
+    let recommendations = [];
+    if (matchingProducts.length === 0 && categories.length === 0 && brands.length === 0) {
+      recommendations = await Product.find({})
+        .select("name category brand price oldPrice images rating badge stock")
+        .sort({ rating: -1, reviews: -1 })
+        .limit(4)
+        .lean();
+    }
+
+    const result = {
+      query: cleanQ,
+      products: matchingProducts.map((p) => ({
+        _id: p._id,
+        name: p.name,
+        category: p.category,
+        brand: p.brand,
+        price: p.price,
+        oldPrice: p.oldPrice,
+        image: p.images && p.images[0] ? p.images[0].url : null,
+        rating: p.rating,
+        badge: p.badge,
+        specs: p.specs,
+      })),
+      categories: (categories || []).filter(Boolean).slice(0, 5),
+      brands: (brands || []).filter(Boolean).slice(0, 5),
+      popular: POPULAR_SEARCHES,
+      recommendations,
+    };
+
+    try {
+      await redis.set(cacheKey, JSON.stringify(result), "EX", 60);
+    } catch (e) {}
+
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+

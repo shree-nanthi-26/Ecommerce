@@ -44,6 +44,24 @@ const WAF_RULES = [
     enabled: true,
     description: "MongoDB NoSQL query operator injection",
   },
+  {
+    ruleId: "PROBE_001",
+    attackType: "Suspicious Request",
+    pattern: /(\.env|\.git|\.aws|\.ssh|wp-admin|wp-login|xmlrpc\.php|phpmyadmin|\/etc\/passwd|web\.config|server-status)/i,
+    severity: 7,
+    action: "block",
+    enabled: true,
+    description: "Sensitive system configuration or administrative probe",
+  },
+  {
+    ruleId: "EXEC_001",
+    attackType: "Suspicious Request",
+    pattern: /(phpinfo\(|eval\(|base64_decode\(|passthru\(|popen\()/i,
+    severity: 8,
+    action: "block",
+    enabled: true,
+    description: "Suspicious arbitrary code execution payload",
+  },
 ];
 
 export const detectAttack = async (req) => {

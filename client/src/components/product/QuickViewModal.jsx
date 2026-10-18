@@ -110,21 +110,33 @@ function QuickViewModal({ product, onClose }) {
               </div>
 
               {/* Key Furniture Specs */}
-              {(product.specs?.material || product.specs?.dimensions || product.specs?.color) && (
+              {(product.specs?.material || product.specs?.dimensions || product.specs?.color || product.specs?.roomType || product.specs?.warranty) && (
                 <div className="grid grid-cols-2 gap-2 text-xs py-2 border-y" style={{ borderColor: "var(--color-border)" }}>
-                  {product.specs.material && (
+                  {product.specs?.material && (
                     <div>
                       <span style={{ color: "var(--color-muted)" }}>Material: </span>
                       <span className="font-semibold" style={{ color: "var(--color-heading)" }}>{product.specs.material}</span>
                     </div>
                   )}
-                  {product.specs.color && (
+                  {product.specs?.color && (
                     <div>
                       <span style={{ color: "var(--color-muted)" }}>Color: </span>
                       <span className="font-semibold" style={{ color: "var(--color-heading)" }}>{product.specs.color}</span>
                     </div>
                   )}
-                  {product.specs.dimensions && (
+                  {product.specs?.roomType && (
+                    <div>
+                      <span style={{ color: "var(--color-muted)" }}>Room: </span>
+                      <span className="font-semibold" style={{ color: "var(--color-heading)" }}>{product.specs.roomType}</span>
+                    </div>
+                  )}
+                  {product.specs?.warranty && (
+                    <div>
+                      <span style={{ color: "var(--color-muted)" }}>Warranty: </span>
+                      <span className="font-semibold text-emerald-600 dark:text-emerald-400">{product.specs.warranty}</span>
+                    </div>
+                  )}
+                  {product.specs?.dimensions && (
                     <div className="col-span-2">
                       <span style={{ color: "var(--color-muted)" }}>Dimensions: </span>
                       <span className="font-semibold" style={{ color: "var(--color-heading)" }}>{product.specs.dimensions}</span>

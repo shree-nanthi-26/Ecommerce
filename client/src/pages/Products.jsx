@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/common/SEO";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import ProductCard from "../components/product/ProductCard";
@@ -7,7 +7,7 @@ import QuickViewModal from "../components/product/QuickViewModal";
 import { useEffect, useState, useCallback } from "react";
 import { getAllProducts } from "../services/productService";
 import { useSearchParams } from "react-router-dom";
-import { FiChevronLeft, FiChevronRight, FiX } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight, FiX, FiSearch } from "react-icons/fi";
 
 const PRODUCTS_PER_PAGE = 12;
 
@@ -27,6 +27,7 @@ const RATINGS = [
 
 function Products() {
   const [products, setProducts] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [totalProducts, setTotalProducts] = useState(0);
@@ -85,9 +86,10 @@ function Products() {
         if (!params.page) params.page = "1";
         if (!params.limit) params.limit = String(PRODUCTS_PER_PAGE);
         const data = await getAllProducts(params);
-        setProducts(data.products);
-        setTotalProducts(data.total);
-        setTotalPages(data.totalPages);
+        setProducts(data.products || []);
+        setTotalProducts(data.total || 0);
+        setTotalPages(data.totalPages || 1);
+        setRecommendations(data.recommendations || []);
       } catch (err) {
         setError("Could not load products. Is the server running?");
       } finally {
@@ -136,21 +138,41 @@ function Products() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const pageSeoTitle = searchQuery
+    ? `Search: "${searchQuery}" | Furniva`
+    : selectedCategory
+    ? `${selectedCategory} – Handcrafted Furniture | Furniva`
+    : "Shop Handcrafted Furniture | Furniva Atelier";
+
+  const pageSeoDesc = selectedCategory
+    ? `Explore our ${selectedCategory} collection. Handcrafted solid wood, tailored fabrics, and bespoke craftsmanship designed for modern homes.`
+    : searchQuery
+    ? `Browse handcrafted furniture matching "${searchQuery}" at Furniva. Find contemporary designs for living room, bedroom, dining, and home office.`
+    : "Explore handcrafted furniture designed for comfort, architectural beauty, and longevity. Premium sofas, beds, dining sets, tables, and cabinets at Furniva.";
+
+  const pageCanonicalUrl = selectedCategory
+    ? `/products?category=${encodeURIComponent(selectedCategory)}`
+    : "/products";
+
+  const breadcrumbsList = [
+    { name: "Home", item: "/" },
+    { name: "Furniture", item: "/products" },
+  ];
+  if (selectedCategory) {
+    breadcrumbsList.push({
+      name: selectedCategory,
+      item: `/products?category=${encodeURIComponent(selectedCategory)}`,
+    });
+  }
+
   return (
     <>
-      <Helmet>
-        <title>
-          {searchQuery
-            ? `Search: "${searchQuery}" – Furniva`
-            : selectedCategory
-            ? `${selectedCategory} – Furniva`
-            : "Shop Furniture – Furniva"}
-        </title>
-        <meta
-          name="description"
-          content="Explore furniture designed for comfort, style and everyday living. Handcrafted sofas, beds, dining sets, tables, and storage at Furniva."
-        />
-      </Helmet>
+      <SEO
+        title={pageSeoTitle}
+        description={pageSeoDesc}
+        canonicalUrl={pageCanonicalUrl}
+        breadcrumbs={breadcrumbsList}
+      />
 
       <Navbar />
 
@@ -299,11 +321,81 @@ function Products() {
                   )
                   : products.length === 0
                   ? (
-                    <div
-                      className="col-span-full text-center text-lg py-16"
-                      style={{ color: "var(--color-muted)" }}
-                    >
-                      No products match your filters.
+                    <div className="col-span-full py-10">
+                      <div className="text-center max-w-md mx-auto">
+                        <div
+                          className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
+                          style={{ background: "var(--color-surface-alt)", color: "var(--color-muted)" }}
+                        >
+                          <FiSearch size={28} />
+                        </div>
+                        <h3 className="text-xl font-bold mb-2" style={{ color: "var(--color-heading)" }}>
+                          {searchQuery
+                            ? `No results found for "${searchQuery}"`
+                            : "No products match your filters"}
+                        </h3>
+                        <p className="text-sm mb-6" style={{ color: "var(--color-muted)" }}>
+                          {searchQuery
+                            ? "Try checking your spelling or explore popular categories and suggestions below."
+                            : "Try adjusting or clearing some of your active filters."}
+                        </p>
+
+                        <div className="flex flex-wrap justify-center gap-2 mb-6">
+                          {["Modern Sofa", "Dining Table", "King Bed", "Ergonomic Chair", "Coffee Table", "Solid Wood"].map(
+                            (keyword) => (
+                              <button
+                                key={keyword}
+                                type="button"
+                                onClick={() => updateParams({ q: keyword })}
+                                className="px-3.5 py-1.5 rounded-full text-xs font-medium transition-all hover:scale-105"
+                                style={{
+                                  background: "var(--color-surface-alt)",
+                                  border: "1px solid var(--color-border)",
+                                  color: "var(--color-heading)",
+                                }}
+                              >
+                                {keyword}
+                              </button>
+                            )
+                          )}
+                        </div>
+
+                        {hasActiveFilters && (
+                          <button
+                            type="button"
+                            onClick={clearFilters}
+                            className="text-xs font-semibold px-4 py-2 rounded-xl border transition-colors hover:bg-[var(--color-surface-alt)]"
+                            style={{ borderColor: "var(--color-border)", color: "var(--color-accent)" }}
+                          >
+                            Clear all filters
+                          </button>
+                        )}
+                      </div>
+
+                      {/* No-result recommendations */}
+                      {recommendations && recommendations.length > 0 && (
+                        <div className="mt-12 pt-8 border-t" style={{ borderColor: "var(--color-border)" }}>
+                          <div className="flex items-center justify-between mb-6">
+                            <div>
+                              <h4 className="text-lg font-bold" style={{ color: "var(--color-heading)" }}>
+                                Recommended For You
+                              </h4>
+                              <p className="text-xs" style={{ color: "var(--color-muted)" }}>
+                                Highly rated customer favorites
+                              </p>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {recommendations.map((rec) => (
+                              <ProductCard
+                                key={rec._id || rec.id}
+                                product={rec}
+                                onQuickView={setQuickViewProduct}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )
                   : products.map((product) => (

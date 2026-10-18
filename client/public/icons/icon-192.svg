@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" fill="none">
+  <defs>
+    <linearGradient id="bgGrad192" x1="0" y1="0" x2="192" y2="192" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#8B5E3C"/>
+      <stop offset="100%" stop-color="#4A301D"/>
+    </linearGradient>
+    <linearGradient id="goldGrad192" x1="48" y1="48" x2="144" y2="144" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EED9C4"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="192" height="192" rx="42" fill="url(#bgGrad192)"/>
+  <rect x="4" y="4" width="184" height="184" rx="38" stroke="#D9A87E" stroke-opacity="0.25" stroke-width="2"/>
+
+  <!-- Furniva Armchair Motif -->
+  <g transform="translate(18, 18) scale(6.5)">
+    <path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3" stroke="url(#goldGrad192)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M3 11v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z" stroke="url(#goldGrad192)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M6 18v3" stroke="url(#goldGrad192)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M18 18v3" stroke="url(#goldGrad192)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

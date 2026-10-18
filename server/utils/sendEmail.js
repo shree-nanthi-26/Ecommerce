@@ -7,9 +7,18 @@ import transporter from "../config/mailer.js";
  * @param {string} html - HTML body.
  */
 export async function sendEmail(to, subject, html) {
+  if (process.env.NODE_ENV === "test") {
+    return { messageId: "test-mock-id" };
+  }
+
   try {
+    const fromAddress =
+      process.env.EMAIL_FROM ||
+      process.env.SMTP_FROM ||
+      "Furniva <no-reply@furniva.com>";
+
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM,
+      from: fromAddress,
       to,
       subject,
       html,

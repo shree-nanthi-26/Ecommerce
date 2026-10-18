@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/common/SEO";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -14,11 +14,16 @@ import {
   FiTruck,
   FiChevronRight,
   FiShield,
+  FiMapPin,
+  FiBell,
+  FiCheck,
 } from "react-icons/fi";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
+import AccountSecuritySettings from "../components/profile/AccountSecuritySettings";
 import { useAuth } from "../context/AuthContext";
 import { getMyOrders } from "../services/orderService";
+import axiosInstance from "../api/axiosInstance";
 
 const STATUS_COLOR = {
   Placed: { color: "#3B82F6", bg: "rgba(59,130,246,0.12)", icon: FiClock },
@@ -53,8 +58,15 @@ function ProfileAvatar({ name }) {
 
 function Profile() {
   const { user, logout } = useAuth();
+  const [activeTab, setActiveTab] = useState("overview");
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const [emailPrefs, setEmailPrefs] = useState({
+    marketingEmails: true,
+    abandonedCartEmails: true,
+  });
+  const [savingPrefs, setSavingPrefs] = useState(false);
+  const [prefsMessage, setPrefsMessage] = useState("");
 
   useEffect(() => {
     async function fetchOrders() {
@@ -71,18 +83,50 @@ function Profile() {
     fetchOrders();
   }, []);
 
+  useEffect(() => {
+    async function fetchPreferences() {
+      try {
+        const res = await axiosInstance.get("/auth/preferences");
+        if (res.data?.emailPreferences) {
+          setEmailPrefs({
+            marketingEmails: res.data.emailPreferences.marketingEmails !== false,
+            abandonedCartEmails: res.data.emailPreferences.abandonedCartEmails !== false,
+          });
+        }
+      } catch (e) {}
+    }
+    if (user) {
+      fetchPreferences();
+    }
+  }, [user]);
+
+  const handleTogglePref = async (key) => {
+    const updated = { ...emailPrefs, [key]: !emailPrefs[key] };
+    setEmailPrefs(updated);
+    setSavingPrefs(true);
+    setPrefsMessage("");
+    try {
+      await axiosInstance.put("/auth/preferences", updated);
+      setPrefsMessage("Preferences updated");
+      setTimeout(() => setPrefsMessage(""), 3000);
+    } catch (e) {
+      setPrefsMessage("Failed to update preferences");
+    } finally {
+      setSavingPrefs(false);
+    }
+  };
+
   const totalSpent = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
   const deliveredCount = orders.filter((o) => o.status === "Delivered").length;
 
   return (
     <>
-      <Helmet>
-        <title>My Profile – Furniva</title>
-        <meta
-          name="description"
-          content="Manage your Furniva account, view furniture order history, and update your profile details."
-        />
-      </Helmet>
+      <SEO
+        title="My Profile | Furniva"
+        description="Manage your Furniva account, order history, and security preferences."
+        canonicalUrl="/profile"
+        noIndex={true}
+      />
 
       <Navbar />
 
@@ -169,7 +213,7 @@ function Profile() {
                 </div>
               </div>
 
-              {/* Quick links */}
+              {/* Quick links & Tabs */}
               <div
                 className="rounded-3xl border overflow-hidden"
                 style={{
@@ -177,25 +221,50 @@ function Profile() {
                   borderColor: "var(--color-border)",
                 }}
               >
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("overview")}
+                  className={`flex w-full items-center justify-between px-6 py-4 transition border-b ${
+                    activeTab === "overview"
+                      ? "text-[var(--color-accent)] bg-[var(--color-surface-hover)]"
+                      : "text-[var(--color-body)] hover:bg-[var(--color-surface-hover)]"
+                  }`}
+                  style={{ borderColor: "var(--color-border)" }}
+                >
+                  <span className="flex items-center gap-3 font-semibold text-sm">
+                    <FiUser size={17} /> Overview & Details
+                  </span>
+                  <FiChevronRight size={16} style={{ color: "var(--color-muted)" }} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("security")}
+                  className={`flex w-full items-center justify-between px-6 py-4 transition border-b ${
+                    activeTab === "security"
+                      ? "text-[var(--color-accent)] bg-[var(--color-surface-hover)]"
+                      : "text-[var(--color-body)] hover:bg-[var(--color-surface-hover)]"
+                  }`}
+                  style={{ borderColor: "var(--color-border)" }}
+                >
+                  <span className="flex items-center gap-3 font-semibold text-sm">
+                    <FiShield size={17} /> Security & 2FA
+                  </span>
+                  <FiChevronRight size={16} style={{ color: "var(--color-muted)" }} />
+                </button>
+
                 {[
                   { icon: FiShoppingBag, label: "My Orders", href: "/orders" },
                   { icon: FiHeart, label: "My Wishlist", href: "/wishlist" },
+                  { icon: FiMapPin, label: "My Addresses", href: "/addresses" },
                 ].map(({ icon: Icon, label, href }) => (
                   <Link
                     key={label}
                     to={href}
-                    className="flex items-center justify-between px-6 py-4 transition border-b last:border-0"
+                    className="flex items-center justify-between px-6 py-4 transition border-b last:border-0 hover:bg-[var(--color-surface-hover)] hover:text-[var(--color-accent)]"
                     style={{
                       borderColor: "var(--color-border)",
                       color: "var(--color-body)",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "var(--color-surface-hover)";
-                      e.currentTarget.style.color = "var(--color-accent)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent";
-                      e.currentTarget.style.color = "var(--color-body)";
                     }}
                   >
                     <span className="flex items-center gap-3 font-semibold text-sm">
@@ -228,15 +297,19 @@ function Profile() {
               </button>
             </motion.div>
 
-            {/* ── Right column: Account info + Recent orders ── */}
+            {/* ── Right column: Account info or Security Settings ── */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
               className="lg:col-span-2 space-y-8"
             >
-              {/* Account details card */}
-              <div
+              {activeTab === "security" ? (
+                <AccountSecuritySettings />
+              ) : (
+                <>
+                  {/* Account details card */}
+                  <div
                 className="rounded-3xl p-8 border"
                 style={{
                   background: "var(--color-surface)",
@@ -278,6 +351,92 @@ function Profile() {
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* Email & Reminder Preferences card */}
+              <div
+                className="rounded-3xl p-8 border"
+                style={{
+                  background: "var(--color-surface)",
+                  borderColor: "var(--color-border)",
+                }}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="flex h-10 w-10 items-center justify-center rounded-xl flex-shrink-0"
+                      style={{
+                        background: "rgba(197, 160, 89, 0.15)",
+                        color: "var(--color-accent)",
+                      }}
+                    >
+                      <FiBell size={20} />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold">Email & Reminder Preferences</h2>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--color-muted)" }}>
+                        Control which automated emails and reminders you receive
+                      </p>
+                    </div>
+                  </div>
+                  {prefsMessage && (
+                    <span className="self-start sm:self-auto text-xs font-semibold px-3 py-1 rounded-full bg-green-100 text-green-700 flex items-center gap-1">
+                      <FiCheck size={12} /> {prefsMessage}
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  {/* Abandoned Cart Reminder Toggle */}
+                  <div
+                    className="flex items-center justify-between p-4 rounded-2xl gap-4"
+                    style={{ background: "var(--color-surface-alt)" }}
+                  >
+                    <div>
+                      <p className="font-semibold text-sm" style={{ color: "var(--color-heading)" }}>
+                        Abandoned Cart Reminders
+                      </p>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--color-muted)" }}>
+                        Receive helpful reminder emails if you leave handcrafted furniture in your cart without completing your order.
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={emailPrefs.abandonedCartEmails}
+                        onChange={() => handleTogglePref("abandonedCartEmails")}
+                        disabled={savingPrefs}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-accent)]"></div>
+                    </label>
+                  </div>
+
+                  {/* Marketing & Deals Toggle */}
+                  <div
+                    className="flex items-center justify-between p-4 rounded-2xl gap-4"
+                    style={{ background: "var(--color-surface-alt)" }}
+                  >
+                    <div>
+                      <p className="font-semibold text-sm" style={{ color: "var(--color-heading)" }}>
+                        Marketing & Exclusive Deals
+                      </p>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--color-muted)" }}>
+                        Receive updates on seasonal sales, special promotions, and newly curated collections.
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={emailPrefs.marketingEmails}
+                        onChange={() => handleTogglePref("marketingEmails")}
+                        disabled={savingPrefs}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-accent)]"></div>
+                    </label>
+                  </div>
                 </div>
               </div>
 
@@ -384,7 +543,9 @@ function Profile() {
                   </div>
                 )}
               </div>
-            </motion.div>
+            </>
+          )}
+        </motion.div>
           </div>
         </div>
       </main>

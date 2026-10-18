@@ -24,3 +24,14 @@ export async function clearWishlist() {
   const response = await axiosInstance.delete("/wishlist");
   return response.data;
 }
+
+export async function updateWishlistNotifications(productId, data) {
+  const response = await axiosInstance.put(`/wishlist/notifications/${productId}`, data);
+  return response.data;
+}
+
+export async function moveWishlistItemToCart(productId) {
+  const response = await axiosInstance.post(`/wishlist/move-to-cart/${productId}`);
+  return response.data;
+}
+

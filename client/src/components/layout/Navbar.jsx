@@ -1,42 +1,24 @@
-import { FiHeart, FiShoppingCart, FiMenu, FiUser, FiSun, FiMoon, FiX, FiShield } from "react-icons/fi";
+import { FiHeart, FiShoppingCart, FiMenu, FiUser, FiX, FiShield, FiMapPin, FiBell } from "react-icons/fi";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Logo from "./Logo";
 import SearchBar from "../common/SearchBar";
+import ThemeToggle from "../common/ThemeToggle";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
+import { useNotification } from "../../context/NotificationContext";
+import NotificationBell from "../notifications/NotificationBell";
 import EmailVerificationBanner from "../common/EmailVerificationBanner";
 
 function Navbar() {
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
+  const { unreadCount } = useNotification();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const [isDark, setIsDark] = useState(() => {
-    // Primary key: furniva-theme. electromart-theme is kept for legacy compatibility
-    const saved = localStorage.getItem("furniva-theme") || localStorage.getItem("electromart-theme");
-    if (saved === "dark") {
-      document.documentElement.setAttribute("data-theme", "dark");
-      return true;
-    }
-    document.documentElement.removeAttribute("data-theme");
-    return false;
-  });
-
-  const toggleTheme = () => {
-    const next = !isDark;
-    setIsDark(next);
-    if (next) {
-      document.documentElement.setAttribute("data-theme", "dark");
-      localStorage.setItem("furniva-theme", "dark");
-    } else {
-      document.documentElement.removeAttribute("data-theme");
-      localStorage.setItem("furniva-theme", "light");
-    }
-  };
 
   const navLinks = [
     { to: "/", label: "Home" },
@@ -49,6 +31,9 @@ function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 navbar">
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
       <EmailVerificationBanner />
       <div className="max-w-[1500px] mx-auto px-8">
 
@@ -90,6 +75,9 @@ function Navbar() {
               )}
             </Link>
 
+            {/* Notification Bell */}
+            <NotificationBell />
+
             {/* Auth section (desktop) */}
             {user ? (
               <div className="hidden md:flex items-center gap-4">
@@ -99,7 +87,9 @@ function Navbar() {
                   </Link>
                 )}
                 <Link to="/orders">My Orders</Link>
+                <Link to="/addresses">Addresses</Link>
                 <button
+                  id="nav-logout-btn"
                   type="button"
                   onClick={() => { logout(); navigate("/"); }}
                   aria-label="Log out"
@@ -128,13 +118,7 @@ function Navbar() {
             )}
 
             {/* Theme toggle */}
-            <button
-              onClick={toggleTheme}
-              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-              title={isDark ? "Light mode" : "Dark mode"}
-            >
-              {isDark ? <FiSun size={20} /> : <FiMoon size={20} />}
-            </button>
+            <ThemeToggle align="right" />
 
             {/* Mobile menu toggle */}
             <button
@@ -195,12 +179,43 @@ function Navbar() {
                 <Link to="/profile" onClick={() => setMobileOpen(false)} className="py-2 flex items-center gap-2">
                   <FiUser size={16} /> My Profile
                 </Link>
+                <Link to="/addresses" onClick={() => setMobileOpen(false)} className="py-2 flex items-center gap-2">
+                  <FiMapPin size={16} /> My Addresses
+                </Link>
+                <Link to="/notifications" onClick={() => setMobileOpen(false)} className="py-2 flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <FiBell size={16} /> Notifications
+                  </span>
+                  {unreadCount > 0 && (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-bold text-white bg-rose-600">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Link>
               </>
             ) : (
-              <Link to="/login" onClick={() => setMobileOpen(false)} className="py-2">
-                Account
-              </Link>
+              <>
+                <Link to="/notifications" onClick={() => setMobileOpen(false)} className="py-2 flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <FiBell size={16} /> Notifications
+                  </span>
+                  {unreadCount > 0 && (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-bold text-white bg-rose-600">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Link>
+                <Link to="/login" onClick={() => setMobileOpen(false)} className="py-2">
+                  Account
+                </Link>
+              </>
             )}
+
+            {/* Mobile Theme selector */}
+            <div className="flex items-center justify-between pt-3 mt-1 border-t" style={{ borderColor: "var(--color-chrome-border)" }}>
+              <span className="text-sm font-semibold" style={{ color: "var(--color-chrome-text)" }}>Appearance</span>
+              <ThemeToggle showLabel={true} align="right" />
+            </div>
           </nav>
         )}
       </div>

@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import SEO from "../components/common/SEO";
 import { useEffect, useState } from "react";
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
@@ -79,13 +79,15 @@ function Deals() {
 
   return (
     <>
-      <Helmet>
-        <title>Exclusive Furniture Deals & Offers – Furniva</title>
-        <meta
-          name="description"
-          content="Discover handcrafted wooden furniture, luxury sofas, dining sets, and bedroom suites at exclusive limited-time prices."
-        />
-      </Helmet>
+      <SEO
+        title="Exclusive Furniture Deals & Offers | Furniva"
+        description="Discover handcrafted wooden furniture, luxury sofas, dining sets, and bedroom suites at exclusive limited-time prices."
+        canonicalUrl="/deals"
+        breadcrumbs={[
+          { name: "Home", item: "/" },
+          { name: "Exclusive Deals", item: "/deals" },
+        ]}
+      />
 
       <Navbar />
 
