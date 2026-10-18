@@ -5,3 +5,16 @@ node_modules/
 dist/
 *.log
 .DS_Store
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+build/
+coverage/
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
